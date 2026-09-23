@@ -33,8 +33,8 @@ supabase/seed.sql             dados importados do artefato
 
 ### 1. Banco de dados
 No Supabase > **SQL Editor** > *New query*: cole e rode o conteúdo de
-`supabase/migrations/001_schema.sql`; depois, numa nova query, rode
-`supabase/seed.sql`. (Se o Claude estiver com o conector do Supabase, ele faz
+`supabase/migrations/001_schema.sql`, depois `002_private_is_allowed_user.sql`
+e por fim `supabase/seed.sql`. ✅ **Já feito** no projeto `jlvqqiwshtitockjoksr`. (Se o Claude estiver com o conector do Supabase, ele faz
 isso por você.)
 
 ### 2. Login por e-mail
@@ -56,7 +56,7 @@ Supabase > **Authentication** > **Sign In / Providers** > **Email**: deixe
 Opcional: em **Authentication > Emails > Templates > Magic Link**, traduza o
 e-mail para português.
 
-### 3. Chaves no site
+### 3. Chaves no site ✅ já preenchidas
 Supabase > **Project Settings** > **API Keys** (ou **Data API**): copie a
 **Project URL** e a chave **anon / public** e cole em `config.js`. Essa chave é
 pública por natureza — **nunca** use a `service_role` / `secret`.

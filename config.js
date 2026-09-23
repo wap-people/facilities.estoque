@@ -7,8 +7,8 @@
 //   - Project URL          -> SUPABASE_URL
 //   - anon / public key    -> SUPABASE_ANON_KEY
 window.APP_CONFIG = {
-  SUPABASE_URL: 'COLE_AQUI_A_PROJECT_URL',
-  SUPABASE_ANON_KEY: 'COLE_AQUI_A_ANON_KEY',
+  SUPABASE_URL: 'https://jlvqqiwshtitockjoksr.supabase.co',
+  SUPABASE_ANON_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpsdnFxaXdzaHRpdG9ja2pva3NyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTAxNzgwNTAsImV4cCI6MjEwNTc1NDA1MH0.uEOWhGE5piT6dAZoLr05jH3TGG9mj2MQz7qc574cDIY',
   // Domínios de e-mail aceitos na tela de login (a trava real está no banco,
   // na tabela public.allowed_domains).
   ALLOWED_DOMAINS: ['wap.ind.br'],

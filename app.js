@@ -915,7 +915,8 @@
       actor_name: state.myName || null,
       actor_email: state.user.email || null,
     });
-    if (error) console.error('activity log error', error);
+    if (error) { console.error('activity log error', error); return; }
+    if (unitId === state.unit) reloadActivity();
   }
 
   function renderActivityFeed() {
