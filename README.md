@@ -14,6 +14,8 @@ app.js                        lógica do app + acesso ao Supabase
 config.js                     URL e chave pública do Supabase
 supabase/migrations/001_schema.sql   tabelas, segurança (RLS) e tempo real
 supabase/migrations/003_...  usuários (members) e login por senha
+supabase/migrations/004_...  permissões da página Configurações
+settings.js                   página Configurações
 supabase/functions/admin-users   Edge Function de cadastro de usuários
 supabase/seed.sql             dados importados do artefato
 ```
@@ -58,6 +60,26 @@ republica em 1–2 minutos.
 
 ---
 
+## Configurações (só administradores)
+
+Menu **Configurações**, com as abas:
+
+- **Catálogo** — editar qualquer campo de um item (inclusive o código; as
+  contagens acompanham), excluir item (apaga também as contagens dele),
+  renomear/juntar categorias e exportar o catálogo em planilha.
+- **Copiar catálogo** — copia os itens de uma unidade para outras (com ou sem
+  estoque de segurança e consumo médio; mantém ou sobrescreve os que já
+  existem). Contagens não são copiadas.
+- **Importar planilha** — Excel (.xlsx) ou CSV com as colunas Código,
+  Descrição, Categoria, Unidade, Estoque de segurança e Consumo médio. Mostra
+  uma prévia (novos, a atualizar, sem mudança, erros) antes de gravar. O
+  botão *Baixar modelo* traz o formato; o *Exportar planilha* do Catálogo gera
+  um arquivo no mesmo formato, bom para editar em massa e reimportar.
+- **Unidades** — renomear, mudar a ordem e criar unidades novas.
+- **Usuários** — cadastrar, redefinir senha, desativar e promover a admin.
+
+Edições, exclusões, importações e cópias aparecem em "Últimas movimentações".
+
 ## Tarefas do dia a dia
 
 **Publicar uma alteração**: edite, faça commit e push na `main`. Se mudar
@@ -73,7 +95,7 @@ python -m http.server 5173
 e abra `http://localhost:5173`.
 
 **Banco do zero** (outro projeto Supabase): rode, no SQL Editor, os arquivos
-de `supabase/migrations/` em ordem (001, 002, 003), depois `supabase/seed.sql`,
+de `supabase/migrations/` em ordem (001 a 004), depois `supabase/seed.sql`,
 e publique a função `supabase/functions/admin-users`.
 
 ## Modelo de dados

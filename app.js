@@ -2,14 +2,13 @@
   const MONTH_NAMES = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
   const CAT_ORDER = ['Alimento', 'Higiene', 'Limpeza'];
   const CAT_CLASS = { Alimento: 'alimento', Higiene: 'higiene', Limpeza: 'limpeza' };
-  const UNITS = [
+  let UNITS = [
     { id: 'SM', label: 'WAP UN. SM' },
     { id: 'AFP', label: 'WAP UN. AFP' },
     { id: 'SERRA', label: 'WAP UN. SERRA' },
     { id: 'LINHARES', label: 'WAP UN. LINHARES' },
     { id: 'EUSEBIO', label: 'WAP UN. EUSÉBIO' },
   ];
-  const DEFAULT_UNIT = UNITS[0].id;
   const CFG = window.APP_CONFIG || {};
 
   const state = {
@@ -39,7 +38,7 @@
       const raw = localStorage.getItem('estoqueWapUnit');
       if (raw && UNITS.some(function (u) { return u.id === raw; })) return raw;
     } catch (e) { /* ignore */ }
-    return DEFAULT_UNIT;
+    return UNITS[0].id;
   }
   function saveUnit(unitId) {
     try { localStorage.setItem('estoqueWapUnit', unitId); } catch (e) { /* ignore */ }
@@ -179,6 +178,26 @@
       });
   }
 
+  function populateUnitSelect() {
+    const unitSel = document.getElementById('unitSelect');
+    unitSel.innerHTML = UNITS.map(function (u) {
+      return '<option value="' + escapeHtml(u.id) + '">' + escapeHtml(u.label) + '</option>';
+    }).join('');
+    unitSel.value = state.unit;
+  }
+
+  async function loadUnits() {
+    const { data, error } = await state.sb.from('units').select('id, label, sort').order('sort').order('id');
+    if (error || !data || !data.length) { if (error) console.error('units error', error); return; }
+    UNITS = data.map(function (u) { return { id: u.id, label: u.label, sort: u.sort }; });
+    if (!UNITS.some(function (u) { return u.id === state.unit; })) {
+      state.unit = UNITS[0].id;
+      saveUnit(state.unit);
+    }
+    populateUnitSelect();
+    render();
+  }
+
   function switchUnit(unitId) {
     if (unitId === state.unit) return;
     state.unit = unitId;
@@ -196,17 +215,17 @@
     state.page = page;
     const dashEl = document.getElementById('page-dashboard');
     const estEl = document.getElementById('page-estoque');
-    const usersEl = document.getElementById('page-usuarios');
+    const settingsEl = document.getElementById('page-configuracoes');
     if (dashEl) dashEl.hidden = page !== 'dashboard';
     if (estEl) estEl.hidden = page !== 'estoque';
-    if (usersEl) usersEl.hidden = page !== 'usuarios';
+    if (settingsEl) settingsEl.hidden = page !== 'configuracoes';
     document.querySelectorAll('.nav-item[data-page]').forEach(function (btn) {
       if (btn.dataset.page === page) btn.setAttribute('aria-current', 'page');
       else btn.removeAttribute('aria-current');
     });
     updateStickyOffset();
     if (page === 'dashboard') renderDashboard();
-    if (page === 'usuarios') loadMembers();
+    if (page === 'configuracoes' && window.EstoqueSettings) window.EstoqueSettings.open();
   }
 
   function goToEstoque(opts) {
@@ -277,12 +296,14 @@
     state.user = user;
     state.myName = member.full_name || user.email;
     state.isAdmin = !!member.is_admin;
-    document.getElementById('navUsersBtn').hidden = !state.isAdmin;
+    document.getElementById('navSettingsBtn').hidden = !state.isAdmin;
+    if (!state.isAdmin && state.page === 'configuracoes') showPage('dashboard');
     document.getElementById('authScreen').hidden = true;
     document.getElementById('appShell').hidden = false;
     renderUserChip();
     if (!state.started) {
       state.started = true;
+      await loadUnits();
       subscribeUnit();
       updateStickyOffset();
     }
@@ -504,11 +525,8 @@
 
   function initUi() {
     state.collapsedCats = loadCollapsedCats();
+    populateUnitSelect();
     const unitSel = document.getElementById('unitSelect');
-    unitSel.innerHTML = UNITS.map(function (u) {
-      return '<option value="' + u.id + '">' + escapeHtml(u.label) + '</option>';
-    }).join('');
-    unitSel.value = state.unit;
     unitSel.addEventListener('change', function (e) { switchUnit(e.target.value); });
     populateMonthSelect();
     document.getElementById('monthSelect').value = state.month;
@@ -1053,7 +1071,7 @@
     if (!state.sb || !state.user) return;
     const { error } = await state.sb.from('activity').insert({
       unit_id: unitId,
-      type: type, // 'count' | 'add'
+      type: type, // 'count' | 'add' | 'edit' | 'delete' | 'import' | 'copy'
       code: code,
       name: explicitName || productNameFor(code),
       detail: detail == null ? '' : String(detail),
@@ -1075,16 +1093,17 @@
       return;
     }
     el.innerHTML = items.map(function (a) {
-      const verb = a.type === 'add' ? 'cadastrou' : 'registrou contagem de';
+      const verb = ({ add: 'cadastrou', edit: 'editou', delete: 'excluiu', import: 'importou planilha', copy: 'copiou catálogo' })[a.type] || 'registrou contagem de';
       const extra = (a.type === 'count' && a.detail !== '') ? (' (' + escapeHtml(String(a.detail)) + ' un.)') : '';
       const unitTxt = a.unit_id ? escapeHtml(unitLabel(a.unit_id)) : '';
       const monthTxt = a.month ? escapeHtml(monthLabel(a.month)) : '';
       const context = [unitTxt, monthTxt].filter(Boolean).join(' · ');
       const who = a.actor_name || a.actor_email || 'Alguém';
       const when = a.created_at ? new Date(a.created_at).toLocaleString('pt-BR') : '';
-      return '<div class="activity-row"><span class="activity-dot ' + (a.type === 'add' ? 'add' : 'count') + '"></span>' +
-        '<div class="activity-body"><span class="who">' + escapeHtml(who) + '</span> ' + verb + ' <span class="mono">' + escapeHtml(a.code || '') + '</span>' +
-        (a.name ? ' — ' + escapeHtml(a.name) : '') + extra +
+      const bulk = a.type === 'import' || a.type === 'copy';
+      return '<div class="activity-row"><span class="activity-dot ' + (a.type === 'count' ? 'count' : 'add') + '"></span>' +
+        '<div class="activity-body"><span class="who">' + escapeHtml(who) + '</span> ' + verb + (bulk ? '' : ' <span class="mono">' + escapeHtml(a.code || '') + '</span>') +
+        (a.name ? (bulk ? ' ' : ' — ') + escapeHtml(a.name) : '') + extra + (bulk && a.detail ? ' (' + escapeHtml(a.detail) + ')' : '') +
         (context ? '<div class="activity-context">' + context + '</div>' : '') +
         '<div class="when">' + escapeHtml(when) + '</div></div></div>';
     }).join('');
@@ -1458,6 +1477,22 @@
       '</tr>' + histRow
     );
   }
+
+  // Interface usada por settings.js (página Configurações).
+  window.EstoqueApp = {
+    get sb() { return state.sb; },
+    get units() { return UNITS.slice(); },
+    get currentUnit() { return state.unit; },
+    get isAdmin() { return state.isAdmin; },
+    get userId() { return state.user ? state.user.id : null; },
+    unitLabel: unitLabel,
+    escapeHtml: escapeHtml,
+    logActivity: logActivity,
+    loadUnits: loadUnits,
+    loadMembers: loadMembers,
+    reloadProducts: function () { loadProducts(); },
+    catOrder: CAT_ORDER,
+  };
 
   init();
 })();

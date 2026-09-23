@@ -8,7 +8,7 @@
 <link rel="apple-touch-icon" href="assets/apple-touch-icon.png?v=1">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
-<link rel="stylesheet" href="styles.css?v=5">
+<link rel="stylesheet" href="styles.css?v=7">
 </head>
 <body>
 
@@ -56,9 +56,9 @@
         <span class="nav-ico"><svg width="17" height="17" viewBox="0 0 20 20" fill="none"><path d="M4 3.5h9l3 3v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1v-12a1 1 0 0 1 1-1Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M7 9.5h6M7 12.5h6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></span>
         <span class="nav-txt">Pedidos de compra</span>
       </button>
-      <button class="nav-item" type="button" data-page="usuarios" id="navUsersBtn" hidden>
-        <span class="nav-ico"><svg width="17" height="17" viewBox="0 0 20 20" fill="none"><circle cx="8" cy="7" r="3" stroke="currentColor" stroke-width="1.6"/><path d="M2.5 16.5c.6-2.8 2.8-4.5 5.5-4.5s4.9 1.7 5.5 4.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M13.5 4.2a3 3 0 0 1 0 5.6M15.5 12.4c1.1.8 1.8 2.2 2 4.1" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></span>
-        <span class="nav-txt">Usuários</span>
+      <button class="nav-item" type="button" data-page="configuracoes" id="navSettingsBtn" hidden>
+        <span class="nav-ico"><svg width="17" height="17" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="2.6" stroke="currentColor" stroke-width="1.6"/><path d="M10 3v2M10 15v2M17 10h-2M5 10H3M14.7 5.3l-1.4 1.4M6.7 13.3l-1.4 1.4M14.7 14.7l-1.4-1.4M6.7 6.7 5.3 5.3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></span>
+        <span class="nav-txt">Configurações</span>
       </button>
     </div>
     <div class="nav-label">Em breve</div>
@@ -71,11 +71,6 @@
       <button class="nav-item" type="button" disabled title="Em breve">
         <span class="nav-ico"><svg width="17" height="17" viewBox="0 0 20 20" fill="none"><path d="M4 16V9M10 16V4M16 16v-6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></span>
         <span class="nav-txt">Relatórios</span>
-        <span class="nav-soon">em breve</span>
-      </button>
-      <button class="nav-item" type="button" disabled title="Em breve">
-        <span class="nav-ico"><svg width="17" height="17" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="2.6" stroke="currentColor" stroke-width="1.6"/><path d="M10 3v2M10 15v2M17 10h-2M5 10H3M14.7 5.3l-1.4 1.4M6.7 13.3l-1.4 1.4M14.7 14.7l-1.4-1.4M6.7 6.7 5.3 5.3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></span>
-        <span class="nav-txt">Configurações</span>
         <span class="nav-soon">em breve</span>
       </button>
     </div>
@@ -186,23 +181,125 @@
       <div id="sections"></div>
     </section>
 
-    <section class="page" id="page-usuarios" hidden>
+    <section class="page" id="page-configuracoes" hidden>
       <div class="page-head">
         <div>
-          <h1>Usuários</h1>
-          <div class="subtitle">Quem pode acessar o Estoque Facilities. Administradores cadastram, redefinem senhas e desativam usuários.</div>
-        </div>
-        <button class="btn-primary" id="addUserBtn" type="button">+ Novo usuário</button>
-      </div>
-      <div class="section">
-        <div class="table-scroll">
-          <table class="users-table">
-            <thead><tr><th>Nome</th><th>E-mail</th><th>Perfil</th><th>Situação</th><th>Cadastrado em</th><th></th></tr></thead>
-            <tbody id="usersBody"></tbody>
-          </table>
+          <h1>Configurações</h1>
+          <div class="subtitle">Catálogo, unidades e usuários — visível só para administradores.</div>
         </div>
       </div>
-      <div class="po-feedback" id="usersFeedback"></div>
+
+      <div class="tabs" role="tablist" id="settingsTabs">
+        <button class="tab" type="button" role="tab" data-tab="catalogo">Catálogo</button>
+        <button class="tab" type="button" role="tab" data-tab="copiar">Copiar catálogo</button>
+        <button class="tab" type="button" role="tab" data-tab="importar">Importar planilha</button>
+        <button class="tab" type="button" role="tab" data-tab="unidades">Unidades</button>
+        <button class="tab" type="button" role="tab" data-tab="usuarios">Usuários</button>
+      </div>
+
+      <!-- ---------- Catálogo ---------- -->
+      <div class="tab-panel" data-panel="catalogo" hidden>
+        <div class="toolbar">
+          <div class="toolbar-filters">
+            <select id="catUnit" aria-label="Unidade"></select>
+            <input type="search" id="catSearch" placeholder="Buscar código ou descrição…" aria-label="Buscar">
+          </div>
+          <div class="toolbar-actions">
+            <button class="btn-secondary" id="catRenameBtn" type="button">Renomear categoria</button>
+            <button class="btn-secondary" id="catExportBtn" type="button">Exportar planilha</button>
+          </div>
+        </div>
+        <div class="section">
+          <div class="table-scroll">
+            <table class="cfg-table">
+              <thead><tr><th>Código</th><th>Descrição</th><th>Categoria</th><th>Un.</th><th class="num">Segurança</th><th class="num">Consumo/mês</th><th></th></tr></thead>
+              <tbody id="catBody"></tbody>
+            </table>
+          </div>
+        </div>
+        <div class="po-feedback" id="catFeedback"></div>
+      </div>
+
+      <!-- ---------- Copiar catálogo ---------- -->
+      <div class="tab-panel" data-panel="copiar" hidden>
+        <div class="card">
+          <p class="cfg-help">Copia os itens de uma unidade para outras. Útil para começar uma unidade nova com o mesmo catálogo. As contagens não são copiadas.</p>
+          <div class="cfg-grid">
+            <label class="item-field"><span>Copiar de</span><select id="copyFrom"></select></label>
+            <div class="item-field"><span>Para</span><div id="copyTo" class="check-list"></div></div>
+          </div>
+          <label class="check-line"><input type="checkbox" id="copyParams" checked> Copiar também estoque de segurança e consumo médio (desmarcado = começam em 0)</label>
+          <label class="check-line"><input type="checkbox" id="copyOverwrite"> Sobrescrever itens que já existem no destino (desmarcado = mantém os que já existem)</label>
+          <div class="cfg-preview" id="copyPreview"></div>
+          <div class="cfg-actions">
+            <span class="po-feedback" id="copyFeedback"></span>
+            <button class="btn-primary" id="copyBtn" type="button">Copiar catálogo</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ---------- Importar planilha ---------- -->
+      <div class="tab-panel" data-panel="importar" hidden>
+        <div class="card">
+          <p class="cfg-help">Envie uma planilha <strong>Excel (.xlsx)</strong> ou <strong>CSV</strong> com as colunas
+            <span class="mono">Código · Descrição · Categoria · Unidade · Estoque de segurança · Consumo médio</span>.
+            Só Código, Descrição e Categoria são obrigatórios. Você confere tudo antes de gravar.</p>
+          <div class="cfg-grid">
+            <label class="item-field"><span>Importar para a unidade</span><select id="impUnit"></select></label>
+            <label class="item-field"><span>Arquivo</span><input type="file" id="impFile" accept=".xlsx,.xls,.csv,.txt"></label>
+          </div>
+          <label class="check-line"><input type="checkbox" id="impUpdate" checked> Atualizar itens que já existem (mesmo código). Desmarcado = só adiciona itens novos.</label>
+          <div class="cfg-actions" style="justify-content:flex-start">
+            <button class="btn-secondary" id="impTemplateBtn" type="button">Baixar modelo</button>
+          </div>
+          <div id="impPreview"></div>
+          <div class="cfg-actions">
+            <span class="po-feedback" id="impFeedback"></span>
+            <button class="btn-primary" id="impBtn" type="button" disabled>Importar</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ---------- Unidades ---------- -->
+      <div class="tab-panel" data-panel="unidades" hidden>
+        <div class="section">
+          <div class="table-scroll">
+            <table class="cfg-table">
+              <thead><tr><th>Código</th><th>Nome exibido</th><th>Ordem</th><th class="num">Itens no catálogo</th><th></th></tr></thead>
+              <tbody id="unitsBody"></tbody>
+            </table>
+          </div>
+        </div>
+        <div class="card">
+          <h3 class="card-title">Nova unidade</h3>
+          <div class="cfg-grid three">
+            <label class="item-field"><span>Nome exibido</span><input type="text" id="newUnitLabel" maxlength="60" placeholder="Ex.: WAP UN. JOINVILLE"></label>
+            <label class="item-field"><span>Código</span><input type="text" id="newUnitId" maxlength="30" placeholder="Ex.: JOINVILLE"></label>
+            <label class="item-field"><span>Ordem</span><input type="number" id="newUnitSort" min="0" step="1"></label>
+          </div>
+          <div class="cfg-actions">
+            <span class="po-feedback" id="unitsFeedback"></span>
+            <button class="btn-primary" id="addUnitBtn" type="button">Adicionar unidade</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ---------- Usuários ---------- -->
+      <div class="tab-panel" data-panel="usuarios" hidden>
+        <div class="toolbar">
+          <div class="subtitle">Administradores cadastram, redefinem senhas e desativam usuários.</div>
+          <button class="btn-primary" id="addUserBtn" type="button">+ Novo usuário</button>
+        </div>
+        <div class="section">
+          <div class="table-scroll">
+            <table class="users-table">
+              <thead><tr><th>Nome</th><th>E-mail</th><th>Perfil</th><th>Situação</th><th>Cadastrado em</th><th></th></tr></thead>
+              <tbody id="usersBody"></tbody>
+            </table>
+          </div>
+        </div>
+        <div class="po-feedback" id="usersFeedback"></div>
+      </div>
     </section>
 
     <footer class="note">Dados salvos automaticamente e compartilhados com toda a equipe em tempo real.</footer>
@@ -342,8 +439,62 @@
   </div>
 </div>
 
+<!-- ================= editar item (Configurações) ================= -->
+<div class="po-overlay" id="catEditOverlay" hidden role="dialog" aria-modal="true" aria-labelledby="catEditTitle">
+  <div class="po-modal" style="max-width: 480px;">
+    <div class="po-head">
+      <div>
+        <h3 id="catEditTitle">Editar item</h3>
+        <div class="po-sub" id="catEditSub"></div>
+      </div>
+      <button class="close-btn" type="button" data-close="catEditOverlay" aria-label="Fechar">&times;</button>
+    </div>
+    <form class="po-body item-form" id="catEditForm">
+      <label class="item-field"><span>Código do produto</span><input type="text" id="ceCode" required maxlength="40" autocomplete="off"></label>
+      <label class="item-field"><span>Descrição</span><input type="text" id="ceName" required maxlength="160" autocomplete="off"></label>
+      <label class="item-field"><span>Categoria</span><input type="text" id="ceCategory" required maxlength="60" list="ceCategoryList" autocomplete="off"><datalist id="ceCategoryList"></datalist></label>
+      <label class="item-field"><span>Unidade de medida <span class="opt">(opcional)</span></span><input type="text" id="ceUnit" maxlength="30" autocomplete="off"></label>
+      <div class="item-field-row">
+        <label class="item-field"><span>Estoque de segurança</span><input type="number" id="ceMin" min="0" step="any" required></label>
+        <label class="item-field"><span>Consumo médio mensal</span><input type="number" id="ceAvg" min="0" step="any" required></label>
+      </div>
+      <div class="item-error" id="catEditError" hidden></div>
+    </form>
+    <div class="po-foot">
+      <span class="po-feedback" id="catEditFeedback"></span>
+      <button type="button" data-close="catEditOverlay">Cancelar</button>
+      <button class="primary" type="submit" form="catEditForm" id="catEditSave">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ================= renomear categoria ================= -->
+<div class="po-overlay" id="catRenameOverlay" hidden role="dialog" aria-modal="true" aria-labelledby="catRenameTitle">
+  <div class="po-modal" style="max-width: 440px;">
+    <div class="po-head">
+      <div>
+        <h3 id="catRenameTitle">Renomear categoria</h3>
+        <div class="po-sub">Também serve para juntar duas categorias: renomeie uma com o nome da outra.</div>
+      </div>
+      <button class="close-btn" type="button" data-close="catRenameOverlay" aria-label="Fechar">&times;</button>
+    </div>
+    <form class="po-body item-form" id="catRenameForm">
+      <label class="item-field"><span>Categoria atual</span><select id="crFrom"></select></label>
+      <label class="item-field"><span>Novo nome</span><input type="text" id="crTo" required maxlength="60" autocomplete="off"></label>
+      <label class="check-line"><input type="checkbox" id="crAllUnits" checked> Aplicar em todas as unidades</label>
+      <div class="item-error" id="catRenameError" hidden></div>
+    </form>
+    <div class="po-foot">
+      <span class="po-feedback" id="catRenameFeedback"></span>
+      <button type="button" data-close="catRenameOverlay">Cancelar</button>
+      <button class="primary" type="submit" form="catRenameForm">Renomear</button>
+    </div>
+  </div>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script src="config.js?v=3"></script>
-<script src="app.js?v=3"></script>
+<script src="app.js?v=5"></script>
+<script src="settings.js?v=2"></script>
 </body>
 </html>

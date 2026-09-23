@@ -57,6 +57,7 @@
     --sidebar-text-muted: #7f8fa3;
     --sidebar-active-bg: #223347;
     --sidebar-border: rgba(255,255,255,0.06);
+    color-scheme: dark;
   }
 }
 :root[data-theme="dark"] {
@@ -87,6 +88,7 @@
   --sidebar-text-muted: #7f8fa3;
   --sidebar-active-bg: #223347;
   --sidebar-border: rgba(255,255,255,0.06);
+  color-scheme: dark;
 }
 
 * { box-sizing: border-box; }
@@ -607,3 +609,40 @@ footer.note { color: var(--text-muted); font-size: 11.5px; text-align: center; p
 
 /* cards do painel não estouram a largura em telas estreitas */
 .dash-row > .card { min-width: 0; }
+
+/* ---------- Configurações ---------- */
+.tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--border); overflow-x: auto; overflow-y: hidden; padding-bottom: 1px; }
+.tab { font-family: inherit; font-size: 13px; font-weight: 600; padding: 9px 14px; border: none; background: none; color: var(--text-muted); cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap; }
+.tab:hover { color: var(--text); }
+.tab[aria-selected="true"] { color: var(--accent); border-bottom-color: var(--accent); }
+.tab-panel { display: flex; flex-direction: column; gap: 14px; }
+.tab-panel[hidden] { display: none; }
+.cfg-table { min-width: 760px; }
+.cfg-table td { padding: 8px 10px; }
+.cfg-table td.num { font-family: "IBM Plex Mono", monospace; text-align: right; }
+.cfg-table th.num { text-align: right; }
+.cfg-table .actions { display: flex; gap: 12px; justify-content: flex-end; white-space: nowrap; }
+.cfg-table input.inline { font-family: inherit; font-size: 13px; padding: 5px 8px; border-radius: 6px; border: 1px solid var(--border); background: var(--surface); color: var(--text); width: 100%; min-width: 160px; }
+.cfg-table input.inline.short { min-width: 0; width: 70px; }
+.hist-btn.danger { color: var(--danger); }
+.cfg-help { margin: 0; color: var(--text-muted); font-size: 13px; line-height: 1.5; }
+.cfg-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; align-items: start; }
+.cfg-grid.three { grid-template-columns: 2fr 1fr 110px; }
+@media (max-width: 640px) { .cfg-grid, .cfg-grid.three { grid-template-columns: 1fr; } }
+.cfg-grid select, .cfg-grid input[type="text"], .cfg-grid input[type="number"] { font-family: inherit; font-size: 13.5px; padding: 8px 10px; border-radius: 8px; border: 1px solid var(--border); background: var(--surface); color: var(--text); }
+.cfg-grid input[type="file"] { font-family: inherit; font-size: 13px; color: var(--text); }
+.check-list { display: flex; flex-wrap: wrap; gap: 6px 16px; padding-top: 4px; }
+.check-list label, .check-line { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--text); cursor: pointer; }
+.cfg-actions { display: flex; align-items: center; justify-content: flex-end; gap: 10px; flex-wrap: wrap; }
+.cfg-preview { font-size: 13px; color: var(--text-muted); background: var(--surface-2); border-radius: 8px; padding: 10px 12px; }
+.cfg-preview:empty { display: none; }
+.imp-summary { display: flex; gap: 8px; flex-wrap: wrap; margin: 4px 0 10px; }
+.imp-table { min-width: 820px; }
+.imp-table td { padding: 6px 8px; font-size: 12.5px; }
+.imp-table tr.err td { background: var(--danger-soft); }
+.imp-scroll { max-height: 360px; overflow: auto; border: 1px solid var(--border); border-radius: 10px; }
+
+/* modo escuro: botões e campos herdam a cor do texto do tema
+   (o padrão do navegador é preto, o que some no fundo escuro) */
+button, input, select, textarea { color: inherit; }
+.cat-card, .kpi { color: var(--text); }
