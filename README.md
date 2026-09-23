@@ -89,6 +89,8 @@ e adicione o domínio também em `ALLOWED_DOMAINS` no `config.js`.
 
 **Backup / exportar**: Supabase > Table Editor > tabela > *Export to CSV*.
 
+**Publicar uma alteração**: edite, faça commit e push na `main`. Se mudar `app.js`, `config.js` ou `styles.css`, aumente o `?v=` correspondente em `index.html` para ninguém ficar com a versão antiga em cache.
+
 **Testar localmente**:
 ```bash
 python -m http.server 5173
