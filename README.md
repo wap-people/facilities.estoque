@@ -105,7 +105,7 @@ e publique a função `supabase/functions/admin-users`.
 | `units` | `id` | `label`, `sort` — SM, AFP, SERRA, LINHARES, EUSEBIO |
 | `products` | `unit_id` + `code` | `name`, `category`, `unit`, `min_stock` (estoque de segurança), `avg_consumption` (consumo médio mensal) |
 | `counts` | `unit_id` + `code` + `month` (`AAAA-MM`) | `qty` (vazio = sem contagem), `updated_at`, `updated_by` |
-| `activity` | `id` | `type` (`count`/`add`), `code`, `name`, `detail`, `month`, `actor_name`, `actor_email`, `created_at` |
+| `activity` | `id` | `type` (`count`, `add`, `edit`, `delete`, `import`, `copy`), `code`, `name`, `detail`, `month`, `actor_name`, `actor_email`, `created_at` |
 | `members` | `user_id` | `email`, `full_name`, `is_admin`, `active` — quem tem acesso |
 
 ## Diferenças em relação ao artefato
