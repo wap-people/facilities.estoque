@@ -7,7 +7,7 @@
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%232c4a6e'/%3E%3Ctext x='16' y='22' font-family='sans-serif' font-size='16' font-weight='700' fill='white' text-anchor='middle'%3EW%3C/text%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
-<link rel="stylesheet" href="styles.css?v=2">
+<link rel="stylesheet" href="styles.css?v=3">
 </head>
 <body>
 
@@ -19,13 +19,18 @@
       <div class="sidebar-brand-text"><span class="name">Wap</span><span class="sub">Estoque Facilities</span></div>
     </div>
     <h1>Entrar</h1>
-    <p>Informe seu e-mail corporativo. Enviaremos um link de acesso — basta clicar nele para entrar.</p>
+    <p>Entre com o e-mail e a senha cadastrados pelo administrador.</p>
     <label class="item-field">
       <span>E-mail</span>
-      <input type="email" id="loginEmail" required autocomplete="email" placeholder="nome@wap.ind.br">
+      <input type="email" id="loginEmail" required autocomplete="username" placeholder="nome@wap.ind.br">
     </label>
-    <button class="btn-primary" id="loginBtn" type="submit">Enviar link de acesso</button>
+    <label class="item-field">
+      <span>Senha</span>
+      <input type="password" id="loginPassword" required autocomplete="current-password">
+    </label>
+    <button class="btn-primary" id="loginBtn" type="submit">Entrar</button>
     <div class="auth-msg" id="loginMsg" hidden></div>
+    <p class="auth-hint">Esqueceu a senha ou ainda não tem acesso? Fale com o administrador do sistema.</p>
   </form>
 </div>
 
@@ -48,6 +53,10 @@
       <button class="nav-item" type="button" id="navPoBtn">
         <span class="nav-ico"><svg width="17" height="17" viewBox="0 0 20 20" fill="none"><path d="M4 3.5h9l3 3v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1v-12a1 1 0 0 1 1-1Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M7 9.5h6M7 12.5h6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></span>
         <span class="nav-txt">Pedidos de compra</span>
+      </button>
+      <button class="nav-item" type="button" data-page="usuarios" id="navUsersBtn" hidden>
+        <span class="nav-ico"><svg width="17" height="17" viewBox="0 0 20 20" fill="none"><circle cx="8" cy="7" r="3" stroke="currentColor" stroke-width="1.6"/><path d="M2.5 16.5c.6-2.8 2.8-4.5 5.5-4.5s4.9 1.7 5.5 4.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M13.5 4.2a3 3 0 0 1 0 5.6M15.5 12.4c1.1.8 1.8 2.2 2 4.1" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></span>
+        <span class="nav-txt">Usuários</span>
       </button>
     </div>
     <div class="nav-label">Em breve</div>
@@ -83,6 +92,7 @@
       <div class="user-chip" id="userChip">
         <span id="userAvatarSlot"><span class="user-avatar-fallback">?</span></span>
         <span class="user-name" id="userName">—</span>
+        <button class="logout-btn" id="passwordBtn" type="button" title="Trocar minha senha">senha</button>
         <button class="logout-btn" id="logoutBtn" type="button" title="Sair">sair</button>
       </div>
     </header>
@@ -174,6 +184,25 @@
       <div id="sections"></div>
     </section>
 
+    <section class="page" id="page-usuarios" hidden>
+      <div class="page-head">
+        <div>
+          <h1>Usuários</h1>
+          <div class="subtitle">Quem pode acessar o Estoque Facilities. Administradores cadastram, redefinem senhas e desativam usuários.</div>
+        </div>
+        <button class="btn-primary" id="addUserBtn" type="button">+ Novo usuário</button>
+      </div>
+      <div class="section">
+        <div class="table-scroll">
+          <table class="users-table">
+            <thead><tr><th>Nome</th><th>E-mail</th><th>Perfil</th><th>Situação</th><th>Cadastrado em</th><th></th></tr></thead>
+            <tbody id="usersBody"></tbody>
+          </table>
+        </div>
+      </div>
+      <div class="po-feedback" id="usersFeedback"></div>
+    </section>
+
     <footer class="note">Dados salvos automaticamente e compartilhados com toda a equipe em tempo real.</footer>
   </div>
 </div>
@@ -246,30 +275,73 @@
   </div>
 </div>
 
-<!-- ================= nome do usuário (primeiro acesso) ================= -->
-<div class="po-overlay" id="nameOverlay" hidden role="dialog" aria-modal="true" aria-labelledby="nameTitle">
+<!-- ================= trocar minha senha ================= -->
+<div class="po-overlay" id="pwOverlay" hidden role="dialog" aria-modal="true" aria-labelledby="pwTitle">
   <div class="po-modal" style="max-width: 420px;">
     <div class="po-head">
       <div>
-        <h3 id="nameTitle">Como você quer ser identificado?</h3>
-        <div class="po-sub">Seu nome aparece nas movimentações do estoque.</div>
+        <h3 id="pwTitle">Trocar minha senha</h3>
+        <div class="po-sub">Mínimo de 8 caracteres.</div>
       </div>
+      <button class="close-btn" id="pwCloseBtn" type="button" aria-label="Fechar">&times;</button>
     </div>
-    <form class="po-body item-form" id="nameForm">
+    <form class="po-body item-form" id="pwForm">
       <label class="item-field">
-        <span>Nome</span>
-        <input type="text" id="nameInput" required maxlength="80" placeholder="Ex.: Maria Souza" autocomplete="name">
+        <span>Nova senha</span>
+        <input type="password" id="pwNew" required minlength="8" autocomplete="new-password">
       </label>
+      <label class="item-field">
+        <span>Repita a nova senha</span>
+        <input type="password" id="pwNew2" required minlength="8" autocomplete="new-password">
+      </label>
+      <div class="item-error" id="pwError" hidden></div>
     </form>
     <div class="po-foot">
-      <span class="po-feedback" id="nameFeedback"></span>
-      <button class="primary" type="submit" form="nameForm">Salvar</button>
+      <span class="po-feedback" id="pwFeedback"></span>
+      <button type="button" id="pwCancelBtn">Cancelar</button>
+      <button class="primary" type="submit" form="pwForm" id="pwSaveBtn">Salvar senha</button>
+    </div>
+  </div>
+</div>
+
+<!-- ================= novo usuário / redefinir senha (admin) ================= -->
+<div class="po-overlay" id="userOverlay" hidden role="dialog" aria-modal="true" aria-labelledby="userTitle">
+  <div class="po-modal" style="max-width: 460px;">
+    <div class="po-head">
+      <div>
+        <h3 id="userTitle">Novo usuário</h3>
+        <div class="po-sub" id="userSub"></div>
+      </div>
+      <button class="close-btn" id="userCloseBtn" type="button" aria-label="Fechar">&times;</button>
+    </div>
+    <form class="po-body item-form" id="userForm" autocomplete="off">
+      <label class="item-field" id="userNameField">
+        <span>Nome</span>
+        <input type="text" id="userFullName" maxlength="80" placeholder="Ex.: Maria Souza" autocomplete="off">
+      </label>
+      <label class="item-field" id="userEmailField">
+        <span>E-mail</span>
+        <input type="email" id="userEmail" maxlength="120" placeholder="nome@wap.ind.br" autocomplete="off">
+      </label>
+      <label class="item-field">
+        <span id="userPasswordLabel">Senha provisória</span>
+        <input type="text" id="userPassword" minlength="8" maxlength="72" autocomplete="off" spellcheck="false">
+      </label>
+      <label class="item-field" id="userAdminField" style="flex-direction:row;align-items:center;gap:8px;color:var(--text)">
+        <input type="checkbox" id="userIsAdmin"> <span>Administrador (pode cadastrar e gerenciar usuários)</span>
+      </label>
+      <div class="item-error" id="userError" hidden></div>
+    </form>
+    <div class="po-foot">
+      <span class="po-feedback" id="userFeedback"></span>
+      <button type="button" id="userCancelBtn">Cancelar</button>
+      <button class="primary" type="submit" form="userForm" id="userSaveBtn">Cadastrar</button>
     </div>
   </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
-<script src="config.js?v=2"></script>
-<script src="app.js?v=2"></script>
+<script src="config.js?v=3"></script>
+<script src="app.js?v=3"></script>
 </body>
 </html>

@@ -576,3 +576,11 @@ footer.note { color: var(--text-muted); font-size: 11.5px; text-align: center; p
 .app-shell[hidden] { display: none !important; }
 .logout-btn { background: none; border: none; color: var(--text-muted); font-family: inherit; font-size: 12px; cursor: pointer; text-decoration: underline; text-underline-offset: 2px; padding: 0 0 0 4px; }
 .btn-primary[disabled] { opacity: 0.6; cursor: default; }
+
+/* ---------- usuários ---------- */
+.auth-hint { font-size: 12px !important; }
+.users-table { min-width: 720px; }
+.users-table td { padding: 9px 10px; }
+.users-table .actions { display: flex; gap: 12px; justify-content: flex-end; white-space: nowrap; }
+.users-table tr.inactive td { color: var(--text-muted); }
+.page-head .btn-primary { align-self: center; }

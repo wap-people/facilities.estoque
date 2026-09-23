@@ -30,6 +30,8 @@
     openHistory: {},    // code -> array of {month, qty} or 'loading'
     activity: [],       // recent movements for the dashboard feed
     collapsedCats: {},  // category name -> true when collapsed
+    isAdmin: false,
+    members: [],        // public.members (página Usuários)
   };
 
   function loadUnit() {
@@ -194,14 +196,17 @@
     state.page = page;
     const dashEl = document.getElementById('page-dashboard');
     const estEl = document.getElementById('page-estoque');
+    const usersEl = document.getElementById('page-usuarios');
     if (dashEl) dashEl.hidden = page !== 'dashboard';
     if (estEl) estEl.hidden = page !== 'estoque';
+    if (usersEl) usersEl.hidden = page !== 'usuarios';
     document.querySelectorAll('.nav-item[data-page]').forEach(function (btn) {
       if (btn.dataset.page === page) btn.setAttribute('aria-current', 'page');
       else btn.removeAttribute('aria-current');
     });
     updateStickyOffset();
     if (page === 'dashboard') renderDashboard();
+    if (page === 'usuarios') loadMembers();
   }
 
   function goToEstoque(opts) {
@@ -218,14 +223,7 @@
     render();
   }
 
-  // ---------------- auth ----------------
-
-  function emailAllowed(email) {
-    const domain = String(email || '').split('@')[1] || '';
-    const list = CFG.ALLOWED_DOMAINS || [];
-    if (!list.length) return true;
-    return list.some(function (d) { return d.toLowerCase() === domain.toLowerCase(); });
-  }
+  // ---------------- auth (e-mail + senha) ----------------
 
   function showLoginMsg(msg, kind) {
     const el = document.getElementById('loginMsg');
@@ -242,83 +240,52 @@
   async function onLoginSubmit(e) {
     e.preventDefault();
     const email = document.getElementById('loginEmail').value.trim().toLowerCase();
-    if (!emailAllowed(email)) {
-      showLoginMsg('Use seu e-mail corporativo (' + (CFG.ALLOWED_DOMAINS || []).map(function (d) { return '@' + d; }).join(', ') + ').');
-      return;
-    }
+    const password = document.getElementById('loginPassword').value;
     const btn = document.getElementById('loginBtn');
     btn.disabled = true;
     showLoginMsg('');
-    const redirect = window.location.origin + window.location.pathname;
-    const { error } = await state.sb.auth.signInWithOtp({ email: email, options: { emailRedirectTo: redirect } });
+    const { error } = await state.sb.auth.signInWithPassword({ email: email, password: password });
     btn.disabled = false;
     if (error) {
-      const tooMany = /rate|limit|seconds/i.test(error.message || '');
-      showLoginMsg(tooMany ? 'Muitos pedidos de link em pouco tempo. Aguarde alguns minutos e tente de novo.' : ('Não foi possível enviar o link: ' + error.message));
+      let msg = 'Não foi possível entrar: ' + error.message;
+      if (/invalid login credentials/i.test(error.message)) msg = 'E-mail ou senha incorretos.';
+      else if (/banned/i.test(error.message)) msg = 'Seu usuário está desativado. Fale com o administrador.';
+      else if (/rate|too many/i.test(error.message)) msg = 'Muitas tentativas. Aguarde alguns minutos e tente de novo.';
+      showLoginMsg(msg);
       return;
     }
-    showLoginMsg('Pronto! Abra seu e-mail (' + email + ') e clique no link para entrar. Pode fechar esta aba.', 'ok');
-  }
-
-  function readAuthErrorFromUrl() {
-    const hash = new URLSearchParams(window.location.hash.replace(/^#/, ''));
-    const query = new URLSearchParams(window.location.search);
-    const code = hash.get('error_code') || query.get('error_code');
-    const desc = hash.get('error_description') || query.get('error_description');
-    if (!code && !desc) return;
-    history.replaceState(null, '', window.location.pathname);
-    showLoginMsg(code === 'otp_expired'
-      ? 'Este link expirou ou já foi usado. Peça um novo link abaixo.'
-      : ('Não foi possível entrar: ' + (desc || code)));
+    document.getElementById('loginPassword').value = '';
   }
 
   async function onSession(session) {
     if (!session) {
       state.user = null;
+      state.isAdmin = false;
       showLogin();
       return;
     }
     const user = session.user;
-    if (!emailAllowed(user.email)) {
+    const { data: member, error } = await state.sb.from('members')
+      .select('full_name, is_admin, active').eq('user_id', user.id).maybeSingle();
+    if (error || !member || !member.active) {
       await state.sb.auth.signOut();
       showLogin();
-      showLoginMsg('O e-mail ' + user.email + ' não tem acesso a este sistema.');
+      showLoginMsg(error ? ('Não foi possível verificar seu acesso: ' + error.message)
+        : 'Seu usuário não tem acesso a este sistema. Fale com o administrador.');
       return;
     }
     state.user = user;
-    state.myName = (user.user_metadata && user.user_metadata.full_name) || '';
+    state.myName = member.full_name || user.email;
+    state.isAdmin = !!member.is_admin;
+    document.getElementById('navUsersBtn').hidden = !state.isAdmin;
     document.getElementById('authScreen').hidden = true;
     document.getElementById('appShell').hidden = false;
     renderUserChip();
-    if (!state.myName) openNameForm();
     if (!state.started) {
       state.started = true;
       subscribeUnit();
       updateStickyOffset();
     }
-  }
-
-  function openNameForm() {
-    const guess = (state.user && state.user.email ? state.user.email.split('@')[0] : '')
-      .split(/[._-]+/).filter(Boolean).map(function (s) { return s.charAt(0).toUpperCase() + s.slice(1); }).join(' ');
-    document.getElementById('nameInput').value = state.myName || guess;
-    document.getElementById('nameOverlay').hidden = false;
-    setTimeout(function () { document.getElementById('nameInput').focus(); }, 0);
-  }
-
-  async function onNameSubmit(e) {
-    e.preventDefault();
-    const name = document.getElementById('nameInput').value.trim();
-    if (!name) return;
-    const fb = document.getElementById('nameFeedback');
-    fb.textContent = 'Salvando…';
-    const { data, error } = await state.sb.auth.updateUser({ data: { full_name: name } });
-    if (error) { fb.textContent = 'Não foi possível salvar agora.'; return; }
-    fb.textContent = '';
-    state.myName = name;
-    if (data && data.user) state.user = data.user;
-    document.getElementById('nameOverlay').hidden = true;
-    renderUserChip();
   }
 
   function renderUserChip() {
@@ -332,6 +299,180 @@
     span.className = 'user-avatar-fallback';
     span.textContent = displayName ? displayName.charAt(0).toUpperCase() : '?';
     slot.appendChild(span);
+  }
+
+  // ---------------- trocar minha senha ----------------
+
+  function openPasswordForm() {
+    document.getElementById('pwForm').reset();
+    document.getElementById('pwError').hidden = true;
+    document.getElementById('pwFeedback').textContent = '';
+    document.getElementById('pwOverlay').hidden = false;
+    setTimeout(function () { document.getElementById('pwNew').focus(); }, 0);
+  }
+  function closePasswordForm() { document.getElementById('pwOverlay').hidden = true; }
+
+  async function onPasswordSubmit(e) {
+    e.preventDefault();
+    const a = document.getElementById('pwNew').value;
+    const b = document.getElementById('pwNew2').value;
+    const err = document.getElementById('pwError');
+    err.hidden = true;
+    if (a.length < 8) { err.textContent = 'A senha precisa ter pelo menos 8 caracteres.'; err.hidden = false; return; }
+    if (a !== b) { err.textContent = 'As duas senhas não são iguais.'; err.hidden = false; return; }
+    const btn = document.getElementById('pwSaveBtn');
+    btn.disabled = true;
+    document.getElementById('pwFeedback').textContent = 'Salvando…';
+    const { error } = await state.sb.auth.updateUser({ password: a });
+    btn.disabled = false;
+    document.getElementById('pwFeedback').textContent = '';
+    if (error) {
+      err.textContent = /different|same/i.test(error.message) ? 'A nova senha precisa ser diferente da atual.' : ('Não foi possível trocar a senha: ' + error.message);
+      err.hidden = false;
+      return;
+    }
+    closePasswordForm();
+    showBanner('Senha alterada com sucesso.');
+    setTimeout(function () { showBanner(''); }, 4000);
+  }
+
+  // ---------------- usuários (administradores) ----------------
+
+  async function callAdmin(payload) {
+    const { data, error } = await state.sb.functions.invoke('admin-users', { body: payload });
+    if (error) {
+      let msg = error.message || 'erro';
+      try { const j = await error.context.json(); if (j && j.error) msg = j.error; } catch (e2) { /* ignore */ }
+      throw new Error(msg);
+    }
+    if (data && data.error) throw new Error(data.error);
+    return data;
+  }
+
+  async function loadMembers() {
+    const { data, error } = await state.sb.from('members').select('*').order('full_name');
+    if (error) { document.getElementById('usersFeedback').textContent = 'Erro ao carregar usuários: ' + error.message; return; }
+    state.members = data || [];
+    renderUsers();
+  }
+
+  function renderUsers() {
+    const body = document.getElementById('usersBody');
+    const list = state.members || [];
+    if (!list.length) { body.innerHTML = '<tr><td colspan="6" class="empty-state">Nenhum usuário.</td></tr>'; return; }
+    body.innerHTML = list.map(function (m) {
+      const me = state.user && m.user_id === state.user.id;
+      const actions = [
+        '<button class="hist-btn" type="button" data-act="reset" data-id="' + m.user_id + '">redefinir senha</button>',
+      ];
+      if (!me) {
+        actions.push('<button class="hist-btn" type="button" data-act="admin" data-id="' + m.user_id + '">' + (m.is_admin ? 'tirar admin' : 'tornar admin') + '</button>');
+        actions.push('<button class="hist-btn" type="button" data-act="active" data-id="' + m.user_id + '">' + (m.active ? 'desativar' : 'reativar') + '</button>');
+      }
+      return '<tr' + (m.active ? '' : ' class="inactive"') + '>' +
+        '<td>' + escapeHtml(m.full_name) + (me ? ' <span class="badge neutral">você</span>' : '') + '</td>' +
+        '<td class="mono">' + escapeHtml(m.email) + '</td>' +
+        '<td>' + (m.is_admin ? '<span class="badge ok">administrador</span>' : '<span class="badge neutral">usuário</span>') + '</td>' +
+        '<td>' + (m.active ? '<span class="badge ok"><span class="dot"></span>ativo</span>' : '<span class="badge danger"><span class="dot"></span>desativado</span>') + '</td>' +
+        '<td class="last-count">' + (m.created_at ? new Date(m.created_at).toLocaleDateString('pt-BR') : '—') + '</td>' +
+        '<td><div class="actions">' + actions.join('') + '</div></td>' +
+        '</tr>';
+    }).join('');
+  }
+
+  function randomPassword() {
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789';
+    const arr = new Uint32Array(10);
+    crypto.getRandomValues(arr);
+    return Array.from(arr, function (n) { return chars[n % chars.length]; }).join('');
+  }
+
+  function openUserForm(mode, member) {
+    state.userFormMode = mode;
+    state.userFormTarget = member || null;
+    const isCreate = mode === 'create';
+    document.getElementById('userForm').reset();
+    document.getElementById('userError').hidden = true;
+    document.getElementById('userFeedback').textContent = '';
+    document.getElementById('userNameField').hidden = !isCreate;
+    document.getElementById('userEmailField').hidden = !isCreate;
+    document.getElementById('userAdminField').hidden = !isCreate;
+    document.getElementById('userTitle').textContent = isCreate ? 'Novo usuário' : 'Redefinir senha';
+    document.getElementById('userSub').textContent = isCreate
+      ? 'Passe o e-mail e a senha provisória para a pessoa. Ela pode trocar a senha depois, em "senha", no topo da tela.'
+      : ('Nova senha para ' + member.full_name + ' (' + member.email + '). Passe a senha para a pessoa.');
+    document.getElementById('userPasswordLabel').textContent = isCreate ? 'Senha provisória' : 'Nova senha';
+    document.getElementById('userSaveBtn').textContent = isCreate ? 'Cadastrar' : 'Salvar nova senha';
+    document.getElementById('userPassword').value = randomPassword();
+    document.getElementById('userOverlay').hidden = false;
+    setTimeout(function () { document.getElementById(isCreate ? 'userFullName' : 'userPassword').focus(); }, 0);
+  }
+  function closeUserForm() { document.getElementById('userOverlay').hidden = true; }
+
+  async function onUserSubmit(e) {
+    e.preventDefault();
+    const err = document.getElementById('userError');
+    err.hidden = true;
+    const password = document.getElementById('userPassword').value;
+    let payload;
+    if (state.userFormMode === 'create') {
+      payload = {
+        action: 'create',
+        full_name: document.getElementById('userFullName').value.trim(),
+        email: document.getElementById('userEmail').value.trim().toLowerCase(),
+        password: password,
+        is_admin: document.getElementById('userIsAdmin').checked,
+      };
+      if (!payload.full_name) { err.textContent = 'Informe o nome.'; err.hidden = false; return; }
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(payload.email)) { err.textContent = 'Informe um e-mail válido.'; err.hidden = false; return; }
+    } else {
+      payload = { action: 'update', user_id: state.userFormTarget.user_id, password: password };
+    }
+    if (password.length < 8) { err.textContent = 'A senha precisa ter pelo menos 8 caracteres.'; err.hidden = false; return; }
+    const btn = document.getElementById('userSaveBtn');
+    btn.disabled = true;
+    document.getElementById('userFeedback').textContent = 'Salvando…';
+    try {
+      await callAdmin(payload);
+      closeUserForm();
+      document.getElementById('usersFeedback').textContent = state.userFormMode === 'create'
+        ? ('Usuário ' + payload.email + ' cadastrado.') : 'Senha redefinida.';
+      loadMembers();
+    } catch (ex) {
+      err.textContent = ex.message;
+      err.hidden = false;
+    } finally {
+      btn.disabled = false;
+      document.getElementById('userFeedback').textContent = '';
+    }
+  }
+
+  async function onUsersTableClick(e) {
+    const btn = e.target.closest('[data-act]');
+    if (!btn) return;
+    const m = (state.members || []).find(function (x) { return x.user_id === btn.dataset.id; });
+    if (!m) return;
+    const fb = document.getElementById('usersFeedback');
+    if (btn.dataset.act === 'reset') { openUserForm('reset', m); return; }
+    let payload, question;
+    if (btn.dataset.act === 'active') {
+      payload = { action: 'update', user_id: m.user_id, active: !m.active };
+      question = m.active ? ('Desativar ' + m.full_name + '? A pessoa não conseguirá mais entrar.') : ('Reativar ' + m.full_name + '?');
+    } else {
+      payload = { action: 'update', user_id: m.user_id, is_admin: !m.is_admin };
+      question = m.is_admin ? ('Tirar o acesso de administrador de ' + m.full_name + '?') : ('Tornar ' + m.full_name + ' administrador?');
+    }
+    if (!window.confirm(question)) return;
+    btn.disabled = true;
+    fb.textContent = 'Salvando…';
+    try {
+      await callAdmin(payload);
+      fb.textContent = 'Alteração salva.';
+      loadMembers();
+    } catch (ex) {
+      fb.textContent = ex.message;
+      btn.disabled = false;
+    }
   }
 
   // ---------------- init ----------------
@@ -350,11 +491,10 @@
     }
 
     state.sb = window.supabase.createClient(CFG.SUPABASE_URL, CFG.SUPABASE_ANON_KEY, {
-      auth: { flowType: 'implicit', detectSessionInUrl: true, persistSession: true, autoRefreshToken: true },
+      auth: { persistSession: true, autoRefreshToken: true },
     });
 
     initUi();
-    readAuthErrorFromUrl();
 
     state.sb.auth.onAuthStateChange(function (event, session) {
       // adia para fora do callback (recomendação do supabase-js)
@@ -428,14 +568,21 @@
       e.preventDefault();
       submitNewItem();
     });
-    document.getElementById('nameForm').addEventListener('submit', onNameSubmit);
-    document.getElementById('userName').addEventListener('click', openNameForm);
+    document.getElementById('passwordBtn').addEventListener('click', openPasswordForm);
+    document.getElementById('pwForm').addEventListener('submit', onPasswordSubmit);
+    document.getElementById('pwCloseBtn').addEventListener('click', closePasswordForm);
+    document.getElementById('pwCancelBtn').addEventListener('click', closePasswordForm);
+    document.getElementById('addUserBtn').addEventListener('click', function () { openUserForm('create'); });
+    document.getElementById('userForm').addEventListener('submit', onUserSubmit);
+    document.getElementById('userCloseBtn').addEventListener('click', closeUserForm);
+    document.getElementById('userCancelBtn').addEventListener('click', closeUserForm);
+    document.getElementById('usersBody').addEventListener('click', onUsersTableClick);
     document.getElementById('logoutBtn').addEventListener('click', async function () {
       await state.sb.auth.signOut();
       window.location.reload();
     });
     document.addEventListener('keydown', function (e) {
-      if (e.key === 'Escape') { closePurchaseOrder(); closeItemForm(); }
+      if (e.key === 'Escape') { closePurchaseOrder(); closeItemForm(); closePasswordForm(); closeUserForm(); }
     });
 
     const sectionsEl = document.getElementById('sections');
