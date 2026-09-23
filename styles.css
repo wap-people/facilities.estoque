@@ -584,3 +584,26 @@ footer.note { color: var(--text-muted); font-size: 11.5px; text-align: center; p
 .users-table .actions { display: flex; gap: 12px; justify-content: flex-end; white-space: nowrap; }
 .users-table tr.inactive td { color: var(--text-muted); }
 .page-head .btn-primary { align-self: center; }
+
+/* ---------- logo Wap | WAAW ---------- */
+.sidebar-brand { flex-direction: column; align-items: flex-start; gap: 6px; padding: 4px 8px 8px; }
+.sidebar-logo { display: block; width: 100%; max-width: 184px; height: auto; }
+.sidebar-brand-sub { font-size: 11px; color: var(--sidebar-text-muted); letter-spacing: 0.02em; }
+.auth-brand { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; }
+.auth-brand img { display: block; width: 100%; max-width: 280px; height: auto; }
+.auth-brand-sub { font-size: 12px; color: var(--text-muted); letter-spacing: 0.02em; }
+.logo-on-dark { display: none !important; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .logo-on-light { display: none !important; }
+  :root:not([data-theme="light"]) .logo-on-dark { display: block !important; }
+}
+:root[data-theme="dark"] .logo-on-light { display: none !important; }
+:root[data-theme="dark"] .logo-on-dark { display: block !important; }
+@media (max-width: 760px) {
+  .sidebar-brand { flex-direction: row; align-items: center; padding: 0 4px 0 0; flex: none; }
+  .sidebar-logo { width: auto; height: 22px; max-width: none; }
+  .sidebar-brand-sub { display: none; }
+}
+
+/* cards do painel não estouram a largura em telas estreitas */
+.dash-row > .card { min-width: 0; }
