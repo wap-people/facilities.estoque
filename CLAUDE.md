@@ -50,8 +50,10 @@ Migrado em 2026-09-23 de um artefato do Claude; o visual segue o do artefato.
    pelo Claude; isso é feito pela pessoa no site ou no painel do Supabase.
 6. **Dados reais**: o banco é de produção e é usado pela equipe. Para testar
    escrita, use transação com `rollback` ou peça confirmação antes.
-7. **Git**: comece com `git pull`. Mais de uma pessoa trabalha no projeto;
-   evite reescrever histórico (`push --force`).
+7. **Git**: um hook em `.claude/settings.json` roda `git pull --ff-only`
+   automaticamente ao abrir a sessão. Se ele avisar que falhou, resolva
+   (commit/stash das alterações locais, depois `git pull --rebase`) antes de
+   editar. Mais de uma pessoa trabalha no projeto; nunca use `push --force`.
 
 ## Modelo de dados (resumo)
 

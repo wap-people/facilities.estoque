@@ -1,0 +1,17 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "startup|resume",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "git -C \"$CLAUDE_PROJECT_DIR\" pull --ff-only 2>&1 || echo \"AVISO: git pull falhou (alterações locais ou conflito). Resolva antes de editar.\"",
+            "timeout": 60,
+            "statusMessage": "Atualizando o repositório (git pull)..."
+          }
+        ]
+      }
+    ]
+  }
+}
