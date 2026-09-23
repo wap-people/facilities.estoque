@@ -1,0 +1,275 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>WAP | Estoque Facilities</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%232c4a6e'/%3E%3Ctext x='16' y='22' font-family='sans-serif' font-size='16' font-weight='700' fill='white' text-anchor='middle'%3EW%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<!-- ================= login ================= -->
+<div class="auth-screen" id="authScreen" hidden>
+  <form class="auth-card" id="loginForm">
+    <div class="sidebar-brand">
+      <div class="sidebar-mark">W</div>
+      <div class="sidebar-brand-text"><span class="name">Wap</span><span class="sub">Estoque Facilities</span></div>
+    </div>
+    <h1>Entrar</h1>
+    <p>Informe seu e-mail corporativo. Enviaremos um link de acesso — basta clicar nele para entrar.</p>
+    <label class="item-field">
+      <span>E-mail</span>
+      <input type="email" id="loginEmail" required autocomplete="email" placeholder="nome@wap.ind.br">
+    </label>
+    <button class="btn-primary" id="loginBtn" type="submit">Enviar link de acesso</button>
+    <div class="auth-msg" id="loginMsg" hidden></div>
+  </form>
+</div>
+
+<!-- ================= app ================= -->
+<div class="app-shell" id="appShell" hidden>
+  <nav class="sidebar" aria-label="Navegação principal">
+    <div class="sidebar-brand">
+      <div class="sidebar-mark">W</div>
+      <div class="sidebar-brand-text"><span class="name">Wap</span><span class="sub">Estoque Facilities</span></div>
+    </div>
+    <div class="nav-group">
+      <button class="nav-item" type="button" data-page="dashboard" aria-current="page">
+        <span class="nav-ico"><svg width="17" height="17" viewBox="0 0 20 20" fill="none"><rect x="2.5" y="2.5" width="6" height="7" rx="1.4" stroke="currentColor" stroke-width="1.6"/><rect x="11.5" y="2.5" width="6" height="4" rx="1.4" stroke="currentColor" stroke-width="1.6"/><rect x="11.5" y="9.5" width="6" height="8" rx="1.4" stroke="currentColor" stroke-width="1.6"/><rect x="2.5" y="12.5" width="6" height="5" rx="1.4" stroke="currentColor" stroke-width="1.6"/></svg></span>
+        <span class="nav-txt">Dashboard</span>
+      </button>
+      <button class="nav-item" type="button" data-page="estoque">
+        <span class="nav-ico"><svg width="17" height="17" viewBox="0 0 20 20" fill="none"><path d="M2.5 5.5h15M2.5 10h15M2.5 14.5h15" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></span>
+        <span class="nav-txt">Estoque</span>
+      </button>
+      <button class="nav-item" type="button" id="navPoBtn">
+        <span class="nav-ico"><svg width="17" height="17" viewBox="0 0 20 20" fill="none"><path d="M4 3.5h9l3 3v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1v-12a1 1 0 0 1 1-1Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M7 9.5h6M7 12.5h6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></span>
+        <span class="nav-txt">Pedidos de compra</span>
+      </button>
+    </div>
+    <div class="nav-label">Em breve</div>
+    <div class="nav-group">
+      <button class="nav-item" type="button" disabled title="Em breve">
+        <span class="nav-ico"><svg width="17" height="17" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="7" stroke="currentColor" stroke-width="1.6"/><path d="M10 6v4l2.5 2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></span>
+        <span class="nav-txt">Histórico</span>
+        <span class="nav-soon">em breve</span>
+      </button>
+      <button class="nav-item" type="button" disabled title="Em breve">
+        <span class="nav-ico"><svg width="17" height="17" viewBox="0 0 20 20" fill="none"><path d="M4 16V9M10 16V4M16 16v-6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></span>
+        <span class="nav-txt">Relatórios</span>
+        <span class="nav-soon">em breve</span>
+      </button>
+      <button class="nav-item" type="button" disabled title="Em breve">
+        <span class="nav-ico"><svg width="17" height="17" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="2.6" stroke="currentColor" stroke-width="1.6"/><path d="M10 3v2M10 15v2M17 10h-2M5 10H3M14.7 5.3l-1.4 1.4M6.7 13.3l-1.4 1.4M14.7 14.7l-1.4-1.4M6.7 6.7 5.3 5.3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></span>
+        <span class="nav-txt">Configurações</span>
+        <span class="nav-soon">em breve</span>
+      </button>
+    </div>
+    <div class="sidebar-foot">Estoque Facilities · Wap</div>
+  </nav>
+
+  <div class="main-col">
+    <header class="topbar">
+      <select class="unit-select" id="unitSelect" aria-label="Unidade"></select>
+      <select id="monthSelect" aria-label="Mês de referência"></select>
+      <div class="topbar-search">
+        <span class="ico"><svg width="14" height="14" viewBox="0 0 20 20" fill="none"><circle cx="9" cy="9" r="6" stroke="currentColor" stroke-width="1.7"/><path d="M17 17l-4-4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg></span>
+        <input type="search" id="searchInput" placeholder="Buscar por código ou descrição…" aria-label="Buscar produto">
+      </div>
+      <div class="topbar-spacer"></div>
+      <div class="user-chip" id="userChip">
+        <span id="userAvatarSlot"><span class="user-avatar-fallback">?</span></span>
+        <span class="user-name" id="userName">—</span>
+        <button class="logout-btn" id="logoutBtn" type="button" title="Sair">sair</button>
+      </div>
+    </header>
+
+    <div id="banner"></div>
+
+    <section class="page" id="page-dashboard">
+      <div class="page-head">
+        <div>
+          <h1>Painel geral</h1>
+          <div class="subtitle" id="dashSubtitle">Visão geral do estoque</div>
+        </div>
+      </div>
+
+      <div class="dash-grid" id="dashKpis"></div>
+
+      <div class="dash-row">
+        <div class="card">
+          <div class="card-head"><h3 class="card-title">Status geral do estoque</h3><span class="card-sub" id="dashStatusSub"></span></div>
+          <div id="dashStatusBar"></div>
+        </div>
+        <div class="card coverage-card">
+          <div class="card-head" style="justify-content:center;"><h3 class="card-title">Cobertura média do estoque</h3></div>
+          <div id="dashCoverage"></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head"><h3 class="card-title">Categorias</h3><span class="card-sub">clique para ver os itens no Estoque</span></div>
+        <div class="cat-cards" id="dashCategories"></div>
+      </div>
+
+      <div class="dash-row">
+        <div class="card">
+          <div class="card-head"><h3 class="card-title">Produtos críticos</h3><span class="card-link" id="dashCriticalLink" role="button" tabindex="0">ver no Estoque</span></div>
+          <div id="dashCritical"></div>
+        </div>
+        <div class="card">
+          <div class="card-head"><h3 class="card-title">Cobertura do catálogo</h3></div>
+          <div id="dashDonut"></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head"><h3 class="card-title">Maior consumo médio mensal</h3></div>
+        <div class="bar-list" id="dashTopConsumption"></div>
+      </div>
+
+      <div class="card">
+        <div class="card-head"><h3 class="card-title">Últimas movimentações</h3></div>
+        <div class="activity-list" id="dashActivity"></div>
+      </div>
+    </section>
+
+    <section class="page" id="page-estoque" hidden>
+      <div class="page-head">
+        <div>
+          <h1>Controle de Estoque — Wap</h1>
+          <div class="subtitle" id="subtitle">Catálogo de itens e contagem mensal</div>
+        </div>
+      </div>
+      <div class="toolbar">
+        <div class="toolbar-filters">
+          <select id="categorySelect" aria-label="Categoria">
+            <option value="all">Todas as categorias</option>
+          </select>
+          <select id="stateFilter" aria-label="Filtrar por situação">
+            <option value="all">Todos os itens</option>
+            <option value="critical">Itens críticos (abaixo da segurança)</option>
+            <option value="coverage">Cobertura crítica (menos de 1 mês)</option>
+            <option value="uncounted">Sem contagem este mês</option>
+            <option value="zero">Zerados</option>
+          </select>
+          <select id="sortSelect" aria-label="Ordenar por">
+            <option value="code">Ordenar: código (A-Z)</option>
+            <option value="coverage">Ordenar: cobertura (mais crítico primeiro)</option>
+            <option value="minStock">Ordenar: estoque de segurança (maior primeiro)</option>
+            <option value="avgConsumption">Ordenar: consumo médio (maior primeiro)</option>
+          </select>
+        </div>
+        <div class="toolbar-actions">
+          <button class="btn-secondary" id="addItemBtn" type="button">+ Novo item</button>
+          <button class="btn-primary" id="poBtn" type="button">Emitir pedido de compra</button>
+        </div>
+      </div>
+
+      <div class="kpis" id="kpis"></div>
+
+      <div id="sections"></div>
+    </section>
+
+    <footer class="note">Dados salvos automaticamente e compartilhados com toda a equipe em tempo real.</footer>
+  </div>
+</div>
+
+<!-- ================= pedido de compra ================= -->
+<div class="po-overlay" id="poOverlay" hidden role="dialog" aria-modal="true" aria-labelledby="poTitle">
+  <div class="po-modal">
+    <div class="po-head">
+      <div>
+        <h3 id="poTitle">Pedido de compra</h3>
+        <div class="po-sub" id="poSub"></div>
+      </div>
+      <button class="close-btn" id="poCloseBtn" type="button" aria-label="Fechar">&times;</button>
+    </div>
+    <div class="po-body" id="poBody"></div>
+    <div class="po-foot">
+      <span class="po-total" id="poTotal"></span>
+      <span class="po-feedback" id="poFeedback"></span>
+      <button id="poCopyBtn" type="button">Copiar lista</button>
+      <button class="primary" id="poCsvBtn" type="button">Baixar CSV</button>
+    </div>
+  </div>
+</div>
+
+<!-- ================= novo item ================= -->
+<div class="po-overlay" id="itemOverlay" hidden role="dialog" aria-modal="true" aria-labelledby="itemTitle">
+  <div class="po-modal" style="max-width: 480px;">
+    <div class="po-head">
+      <div>
+        <h3 id="itemTitle">Novo item no catálogo</h3>
+        <div class="po-sub" id="itemSub"></div>
+      </div>
+      <button class="close-btn" id="itemCloseBtn" type="button" aria-label="Fechar">&times;</button>
+    </div>
+    <form class="po-body item-form" id="itemForm">
+      <label class="item-field">
+        <span>Código do produto</span>
+        <input type="text" id="itemCode" name="code" required maxlength="40" placeholder="Ex.: A15" autocomplete="off">
+      </label>
+      <label class="item-field">
+        <span>Descrição</span>
+        <input type="text" id="itemName" name="name" required maxlength="160" placeholder="Ex.: Café Extra Forte 500g" autocomplete="off">
+      </label>
+      <label class="item-field">
+        <span>Categoria</span>
+        <input type="text" id="itemCategory" name="category" required maxlength="60" list="categoryList" placeholder="Ex.: Alimento" autocomplete="off">
+        <datalist id="categoryList"></datalist>
+      </label>
+      <label class="item-field">
+        <span>Unidade de medida <span class="opt">(opcional)</span></span>
+        <input type="text" id="itemUnit" name="unit" maxlength="30" placeholder="Ex.: UN, PCT, CX c/12" autocomplete="off">
+      </label>
+      <div class="item-field-row">
+        <label class="item-field">
+          <span>Estoque de segurança</span>
+          <input type="number" id="itemMinStock" name="minStock" min="0" step="1" required value="0">
+        </label>
+        <label class="item-field">
+          <span>Consumo médio mensal</span>
+          <input type="number" id="itemAvgConsumption" name="avgConsumption" min="0" step="1" required value="0">
+        </label>
+      </div>
+      <div class="item-error" id="itemError" hidden></div>
+    </form>
+    <div class="po-foot">
+      <span class="po-feedback" id="itemFeedback"></span>
+      <button type="button" id="itemCancelBtn">Cancelar</button>
+      <button class="primary" id="itemSaveBtn" type="submit" form="itemForm">Adicionar item</button>
+    </div>
+  </div>
+</div>
+
+<!-- ================= nome do usuário (primeiro acesso) ================= -->
+<div class="po-overlay" id="nameOverlay" hidden role="dialog" aria-modal="true" aria-labelledby="nameTitle">
+  <div class="po-modal" style="max-width: 420px;">
+    <div class="po-head">
+      <div>
+        <h3 id="nameTitle">Como você quer ser identificado?</h3>
+        <div class="po-sub">Seu nome aparece nas movimentações do estoque.</div>
+      </div>
+    </div>
+    <form class="po-body item-form" id="nameForm">
+      <label class="item-field">
+        <span>Nome</span>
+        <input type="text" id="nameInput" required maxlength="80" placeholder="Ex.: Maria Souza" autocomplete="name">
+      </label>
+    </form>
+    <div class="po-foot">
+      <span class="po-feedback" id="nameFeedback"></span>
+      <button class="primary" type="submit" form="nameForm">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="config.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
