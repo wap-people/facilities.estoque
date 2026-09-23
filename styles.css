@@ -646,3 +646,27 @@ footer.note { color: var(--text-muted); font-size: 11.5px; text-align: center; p
    (o padrão do navegador é preto, o que some no fundo escuro) */
 button, input, select, textarea { color: inherit; }
 .cat-card, .kpi { color: var(--text); }
+
+/* ---------- Pedidos e Relatórios ---------- */
+.badge.warn { background: var(--cat-alimento-soft); color: var(--warn); }
+.rep-filters { display: grid; grid-template-columns: 1.4fr 1fr 1fr 1fr auto; gap: 12px; align-items: end; }
+@media (max-width: 760px) { .rep-filters { grid-template-columns: 1fr 1fr; } .rep-go { grid-column: 1 / -1; } }
+.rep-filters select { font-family: inherit; font-size: 13.5px; padding: 8px 10px; border-radius: 8px; border: 1px solid var(--border); background: var(--surface); color: var(--text); }
+.rep-go .btn-primary { width: 100%; justify-content: center; padding: 9px 16px; }
+#repContent { display: flex; flex-direction: column; gap: 14px; }
+.rep-block { display: flex; flex-direction: column; gap: 8px; }
+.rep-block h3 { margin: 0; font-size: 14px; }
+.rep-block .rep-note { font-size: 12px; color: var(--text-muted); }
+.rep-scroll { max-height: 520px; overflow: auto; border: 1px solid var(--border); border-radius: 10px; background: var(--surface); }
+.rep-table { width: 100%; border-collapse: collapse; font-size: 12.5px; min-width: 0; }
+.rep-table th { position: sticky; top: 0; background: var(--surface-2); text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: 0.03em; color: var(--text-muted); padding: 7px 8px; border-bottom: 1px solid var(--border); white-space: nowrap; z-index: 1; }
+.rep-table td { padding: 6px 8px; border-bottom: 1px solid var(--border); white-space: nowrap; }
+.rep-table td.wrap { white-space: normal; min-width: 180px; }
+.rep-table td.n, .rep-table th.n { text-align: right; font-family: "IBM Plex Mono", monospace; font-variant-numeric: tabular-nums; }
+.rep-table tr.tone-crit td { background: var(--danger-soft); }
+.rep-table tr.tone-warn td { background: var(--cat-alimento-soft); }
+.rep-kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
+.rep-kpis .kpi { cursor: default; }
+.ai-options { display: flex; flex-wrap: wrap; gap: 8px 18px; margin: 10px 0; }
+.ai-text { width: 100%; min-height: 320px; margin-top: 10px; font-family: "IBM Plex Mono", monospace; font-size: 12px; line-height: 1.45; padding: 10px; border-radius: 8px; border: 1px solid var(--border); background: var(--surface-2); color: var(--text); resize: vertical; }
+.rcv-note { width: 100%; font-family: inherit; font-size: 13px; padding: 7px 9px; border-radius: 8px; border: 1px solid var(--border); background: var(--surface); color: var(--text); margin-top: 10px; }

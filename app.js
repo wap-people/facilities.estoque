@@ -209,23 +209,22 @@
     populateCategorySelect();
     render();
     subscribeUnit();
+    window.dispatchEvent(new CustomEvent('estoque:context'));
   }
 
   function showPage(page) {
     state.page = page;
-    const dashEl = document.getElementById('page-dashboard');
-    const estEl = document.getElementById('page-estoque');
-    const settingsEl = document.getElementById('page-configuracoes');
-    if (dashEl) dashEl.hidden = page !== 'dashboard';
-    if (estEl) estEl.hidden = page !== 'estoque';
-    if (settingsEl) settingsEl.hidden = page !== 'configuracoes';
+    document.querySelectorAll('section.page[id^="page-"]').forEach(function (el) {
+      el.hidden = el.id !== 'page-' + page;
+    });
     document.querySelectorAll('.nav-item[data-page]').forEach(function (btn) {
       if (btn.dataset.page === page) btn.setAttribute('aria-current', 'page');
       else btn.removeAttribute('aria-current');
     });
     updateStickyOffset();
     if (page === 'dashboard') renderDashboard();
-    if (page === 'configuracoes' && window.EstoqueSettings) window.EstoqueSettings.open();
+    const hook = window.EstoquePages && window.EstoquePages[page];
+    if (hook) hook();
   }
 
   function goToEstoque(opts) {
@@ -536,6 +535,7 @@
       state.counts = {};
       render();
       loadCounts();
+      window.dispatchEvent(new CustomEvent('estoque:context'));
     });
     document.getElementById('searchInput').addEventListener('input', function (e) {
       state.search = e.target.value.trim().toLowerCase();
@@ -576,6 +576,10 @@
     });
     document.getElementById('poCopyBtn').addEventListener('click', copyPurchaseOrderText);
     document.getElementById('poCsvBtn').addEventListener('click', downloadPurchaseOrderCsv);
+    document.getElementById('poBody').addEventListener('input', onPoQtyInput);
+    document.getElementById('poSaveBtn').addEventListener('click', function () {
+      if (window.EstoqueOrders) window.EstoqueOrders.registerFromModal(purchaseOrderRows(), state.unit, state.month);
+    });
     document.getElementById('addItemBtn').addEventListener('click', openItemForm);
     document.getElementById('itemCloseBtn').addEventListener('click', closeItemForm);
     document.getElementById('itemCancelBtn').addEventListener('click', closeItemForm);
@@ -626,7 +630,6 @@
     document.querySelectorAll('.nav-item[data-page]').forEach(function (btn) {
       btn.addEventListener('click', function () { showPage(btn.dataset.page); });
     });
-    document.getElementById('navPoBtn').addEventListener('click', openPurchaseOrder);
     document.getElementById('dashKpis').addEventListener('click', function (e) {
       const tile = e.target.closest('[data-filter]');
       if (!tile) return;
@@ -829,9 +832,11 @@
       body.innerHTML = '<div class="po-empty">Nenhum item abaixo do estoque de segurança em ' + monthLabel(state.month) + '. Nada a pedir por enquanto.</div>';
       document.getElementById('poCsvBtn').disabled = true;
       document.getElementById('poCopyBtn').disabled = true;
+      document.getElementById('poSaveBtn').disabled = true;
     } else {
       document.getElementById('poCsvBtn').disabled = false;
       document.getElementById('poCopyBtn').disabled = false;
+      document.getElementById('poSaveBtn').disabled = false;
       const byCat = {};
       rows.forEach(function (r) { (byCat[r.category] = byCat[r.category] || []).push(r); });
       const cats = Object.keys(byCat).sort(function (a, b) {
@@ -851,7 +856,7 @@
             '<td>' + escapeHtml(r.unit) + '</td>' +
             '<td class="num mono">' + r.qty + '</td>' +
             '<td class="num mono">' + r.min + '</td>' +
-            '<td class="num mono po-order-qty">' + r.order + '</td>' +
+            '<td class="num"><input class="num-input qty po-qty" type="number" min="0" step="any" value="' + r.order + '" data-po-code="' + escapeHtml(r.code) + '" aria-label="Quantidade a pedir de ' + escapeHtml(r.name) + '"></td>' +
             '</tr>';
         });
         html += '</tbody></table></div>';
@@ -864,8 +869,24 @@
     }
   }
 
+  // Linhas do pedido com a quantidade que a pessoa digitou (0 = não pedir).
+  function purchaseOrderRows() {
+    return (state.poRows || []).filter(function (r) { return r.order > 0; });
+  }
+
+  function onPoQtyInput(e) {
+    const el = e.target.closest('.po-qty');
+    if (!el) return;
+    const r = (state.poRows || []).find(function (x) { return x.code === el.dataset.poCode; });
+    if (!r) return;
+    const n = parseFloat(el.value);
+    r.order = isNaN(n) || n < 0 ? 0 : n;
+    const n2 = purchaseOrderRows().length;
+    document.getElementById('poTotal').textContent = n2 + (n2 === 1 ? ' item para pedir' : ' itens para pedir');
+  }
+
   function copyPurchaseOrderText() {
-    const rows = state.poRows || [];
+    const rows = purchaseOrderRows();
     if (!rows.length) return;
     const lines = ['Pedido de compra — ' + unitLabel(state.unit) + ' — ' + monthLabel(state.month)];
     let currentCat = null;
@@ -888,7 +909,7 @@
   }
 
   function downloadPurchaseOrderCsv() {
-    const rows = state.poRows || [];
+    const rows = purchaseOrderRows();
     if (!rows.length) return;
     const csv = '﻿' + purchaseOrderToCsv(rows);
     const filename = 'pedido-compra-estoque-wap-' + state.unit.toLowerCase() + '-' + state.month + '.csv';
@@ -1093,7 +1114,7 @@
       return;
     }
     el.innerHTML = items.map(function (a) {
-      const verb = ({ add: 'cadastrou', edit: 'editou', delete: 'excluiu', import: 'importou planilha', copy: 'copiou catálogo' })[a.type] || 'registrou contagem de';
+      const verb = ({ add: 'cadastrou', edit: 'editou', delete: 'excluiu', import: 'importou planilha', copy: 'copiou catálogo', order: 'registrou o pedido de compra', receive: 'registrou recebimento do pedido' })[a.type] || 'registrou contagem de';
       const extra = (a.type === 'count' && a.detail !== '') ? (' (' + escapeHtml(String(a.detail)) + ' un.)') : '';
       const unitTxt = a.unit_id ? escapeHtml(unitLabel(a.unit_id)) : '';
       const monthTxt = a.month ? escapeHtml(monthLabel(a.month)) : '';
@@ -1103,7 +1124,7 @@
       const bulk = a.type === 'import' || a.type === 'copy';
       return '<div class="activity-row"><span class="activity-dot ' + (a.type === 'count' ? 'count' : 'add') + '"></span>' +
         '<div class="activity-body"><span class="who">' + escapeHtml(who) + '</span> ' + verb + (bulk ? '' : ' <span class="mono">' + escapeHtml(a.code || '') + '</span>') +
-        (a.name ? (bulk ? ' ' : ' — ') + escapeHtml(a.name) : '') + extra + (bulk && a.detail ? ' (' + escapeHtml(a.detail) + ')' : '') +
+        (a.name ? (bulk ? ' ' : ' — ') + escapeHtml(a.name) : '') + extra + ((bulk || a.type === 'order' || a.type === 'receive') && a.detail ? ' (' + escapeHtml(a.detail) + ')' : '') +
         (context ? '<div class="activity-context">' + context + '</div>' : '') +
         '<div class="when">' + escapeHtml(when) + '</div></div></div>';
     }).join('');
@@ -1492,6 +1513,15 @@
     loadMembers: loadMembers,
     reloadProducts: function () { loadProducts(); },
     catOrder: CAT_ORDER,
+    get month() { return state.month; },
+    get myName() { return state.myName; },
+    get products() { return state.products.slice(); },
+    monthLabel: monthLabel,
+    monthShort: monthShort,
+    currentMonthStr: currentMonthStr,
+    openPurchaseOrder: openPurchaseOrder,
+    closePurchaseOrder: closePurchaseOrder,
+    showBanner: showBanner,
   };
 
   init();

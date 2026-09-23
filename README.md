@@ -15,7 +15,10 @@ config.js                     URL e chave pública do Supabase
 supabase/migrations/001_schema.sql   tabelas, segurança (RLS) e tempo real
 supabase/migrations/003_...  usuários (members) e login por senha
 supabase/migrations/004_...  permissões da página Configurações
+supabase/migrations/005_...  pedidos de compra registrados
 settings.js                   página Configurações
+orders.js                     página Pedidos de compra (registrar e receber)
+reports.js                    página Relatórios (CSV, Excel e Pacote para IA)
 supabase/functions/admin-users   Edge Function de cadastro de usuários
 supabase/seed.sql             dados importados do artefato
 ```
@@ -80,6 +83,26 @@ Menu **Configurações**, com as abas:
 
 Edições, exclusões, importações e cópias aparecem em "Últimas movimentações".
 
+## Pedidos de compra
+
+No modal **Emitir pedido de compra** (página Estoque ou **+ Novo pedido**) as
+quantidades sugeridas podem ser ajustadas; **Registrar pedido** salva o pedido.
+Na página **Pedidos de compra**, *receber* abre o pedido para informar quanto
+chegou de cada item (total ou parcial). Pedido emitido pode ser cancelado;
+só admin exclui.
+
+## Relatórios
+
+Filtros: unidade (ou todas), período (de/até) e categoria. Abas: Resumo,
+Fechamento do mês, Evolução das contagens, Consumo real, Pedidos, Comparativo
+de unidades e Movimentações. Exporte em **CSV** (aba atual), **Excel** (todas
+as abas + definições) ou **Pacote para IA**: um texto em Markdown com a tarefa,
+as definições dos indicadores e os dados, pronto para colar no Claude.
+
+**Consumo real** = contagem do mês anterior + recebido entre as duas contagens
+− contagem do mês. Depende de contagens em meses seguidos e dos recebimentos
+registrados.
+
 ## Tarefas do dia a dia
 
 **Publicar uma alteração**: edite, faça commit e push na `main`. Se mudar
@@ -95,7 +118,7 @@ python -m http.server 5173
 e abra `http://localhost:5173`.
 
 **Banco do zero** (outro projeto Supabase): rode, no SQL Editor, os arquivos
-de `supabase/migrations/` em ordem (001 a 004), depois `supabase/seed.sql`,
+de `supabase/migrations/` em ordem (001 a 005), depois `supabase/seed.sql`,
 e publique a função `supabase/functions/admin-users`.
 
 ## Modelo de dados
@@ -107,6 +130,8 @@ e publique a função `supabase/functions/admin-users`.
 | `counts` | `unit_id` + `code` + `month` (`AAAA-MM`) | `qty` (vazio = sem contagem), `updated_at`, `updated_by` |
 | `activity` | `id` | `type` (`count`, `add`, `edit`, `delete`, `import`, `copy`), `code`, `name`, `detail`, `month`, `actor_name`, `actor_email`, `created_at` |
 | `members` | `user_id` | `email`, `full_name`, `is_admin`, `active` — quem tem acesso |
+| `purchase_orders` | `id` | `unit_id`, `month`, `status`, `notes`, emitido/recebido por e quando |
+| `purchase_order_items` | `order_id` + `code` | `name`, `qty_current`, `min_stock`, `qty_ordered`, `qty_received` |
 
 ## Diferenças em relação ao artefato
 

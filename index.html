@@ -8,7 +8,7 @@
 <link rel="apple-touch-icon" href="assets/apple-touch-icon.png?v=1">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
-<link rel="stylesheet" href="styles.css?v=7">
+<link rel="stylesheet" href="styles.css?v=8">
 </head>
 <body>
 
@@ -52,9 +52,13 @@
         <span class="nav-ico"><svg width="17" height="17" viewBox="0 0 20 20" fill="none"><path d="M2.5 5.5h15M2.5 10h15M2.5 14.5h15" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></span>
         <span class="nav-txt">Estoque</span>
       </button>
-      <button class="nav-item" type="button" id="navPoBtn">
+      <button class="nav-item" type="button" data-page="pedidos" id="navPoBtn">
         <span class="nav-ico"><svg width="17" height="17" viewBox="0 0 20 20" fill="none"><path d="M4 3.5h9l3 3v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1v-12a1 1 0 0 1 1-1Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M7 9.5h6M7 12.5h6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></span>
         <span class="nav-txt">Pedidos de compra</span>
+      </button>
+      <button class="nav-item" type="button" data-page="relatorios">
+        <span class="nav-ico"><svg width="17" height="17" viewBox="0 0 20 20" fill="none"><path d="M4 16V9M10 16V4M16 16v-6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></span>
+        <span class="nav-txt">Relatórios</span>
       </button>
       <button class="nav-item" type="button" data-page="configuracoes" id="navSettingsBtn" hidden>
         <span class="nav-ico"><svg width="17" height="17" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="2.6" stroke="currentColor" stroke-width="1.6"/><path d="M10 3v2M10 15v2M17 10h-2M5 10H3M14.7 5.3l-1.4 1.4M6.7 13.3l-1.4 1.4M14.7 14.7l-1.4-1.4M6.7 6.7 5.3 5.3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></span>
@@ -68,12 +72,7 @@
         <span class="nav-txt">Histórico</span>
         <span class="nav-soon">em breve</span>
       </button>
-      <button class="nav-item" type="button" disabled title="Em breve">
-        <span class="nav-ico"><svg width="17" height="17" viewBox="0 0 20 20" fill="none"><path d="M4 16V9M10 16V4M16 16v-6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></span>
-        <span class="nav-txt">Relatórios</span>
-        <span class="nav-soon">em breve</span>
-      </button>
-    </div>
+          </div>
     <div class="sidebar-foot">Estoque Facilities · Wap</div>
   </nav>
 
@@ -302,6 +301,72 @@
       </div>
     </section>
 
+    <section class="page" id="page-pedidos" hidden>
+      <div class="page-head">
+        <div>
+          <h1>Pedidos de compra</h1>
+          <div class="subtitle" id="ordersSubtitle">Pedidos registrados e recebimentos</div>
+        </div>
+        <button class="btn-primary" id="newOrderBtn" type="button">+ Novo pedido</button>
+      </div>
+      <div class="toolbar">
+        <div class="toolbar-filters">
+          <select id="ordersStatus" aria-label="Situação">
+            <option value="open">Em aberto (emitidos e parciais)</option>
+            <option value="all">Todos</option>
+            <option value="emitido">Emitidos</option>
+            <option value="parcial">Recebidos parcialmente</option>
+            <option value="recebido">Recebidos</option>
+            <option value="cancelado">Cancelados</option>
+          </select>
+        </div>
+        <div class="cfg-help">O pedido é criado a partir da contagem do mês (botão <strong>+ Novo pedido</strong> ou <strong>Emitir pedido de compra</strong> na página Estoque).</div>
+      </div>
+      <div class="section">
+        <div class="table-scroll">
+          <table class="cfg-table">
+            <thead><tr><th>Nº</th><th>Emitido em</th><th>Contagem</th><th class="num">Itens</th><th class="num">Qtd. pedida</th><th class="num">Qtd. recebida</th><th>Situação</th><th>Emitido por</th><th>Recebido em</th><th></th></tr></thead>
+            <tbody id="ordersBody"></tbody>
+          </table>
+        </div>
+      </div>
+      <div class="po-feedback" id="ordersFeedback"></div>
+    </section>
+
+    <section class="page" id="page-relatorios" hidden>
+      <div class="page-head">
+        <div>
+          <h1>Relatórios</h1>
+          <div class="subtitle">Escolha o escopo, gere o relatório e exporte — em Excel ou como pacote pronto para uma IA analisar.</div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="rep-filters">
+          <label class="item-field"><span>Unidade</span><select id="repUnit"></select></label>
+          <label class="item-field"><span>De</span><select id="repFrom"></select></label>
+          <label class="item-field"><span>Até</span><select id="repTo"></select></label>
+          <label class="item-field"><span>Categoria</span><select id="repCategory"><option value="all">Todas</option></select></label>
+          <div class="rep-go"><button class="btn-primary" id="repRunBtn" type="button">Gerar relatório</button></div>
+        </div>
+        <div class="cfg-actions" style="justify-content:flex-start">
+          <button class="btn-primary" id="repAiBtn" type="button" disabled>✦ Pacote para IA</button>
+          <button class="btn-secondary" id="repXlsxBtn" type="button" disabled>Baixar Excel (todas as abas)</button>
+          <button class="btn-secondary" id="repCsvBtn" type="button" disabled>Baixar CSV desta aba</button>
+          <span class="po-feedback" id="repFeedback"></span>
+        </div>
+      </div>
+      <div class="tabs" role="tablist" id="repTabs">
+        <button class="tab" type="button" role="tab" data-rtab="resumo">Resumo</button>
+        <button class="tab" type="button" role="tab" data-rtab="fechamento">Fechamento do mês</button>
+        <button class="tab" type="button" role="tab" data-rtab="evolucao">Evolução das contagens</button>
+        <button class="tab" type="button" role="tab" data-rtab="consumo">Consumo real</button>
+        <button class="tab" type="button" role="tab" data-rtab="pedidos">Pedidos</button>
+        <button class="tab" type="button" role="tab" data-rtab="unidades">Comparativo de unidades</button>
+        <button class="tab" type="button" role="tab" data-rtab="movimentacoes">Movimentações</button>
+      </div>
+      <div id="repContent"><div class="empty-state">Escolha os filtros e clique em <strong>Gerar relatório</strong>.</div></div>
+    </section>
+
     <footer class="note">Dados salvos automaticamente e compartilhados com toda a equipe em tempo real.</footer>
   </div>
 </div>
@@ -321,7 +386,8 @@
       <span class="po-total" id="poTotal"></span>
       <span class="po-feedback" id="poFeedback"></span>
       <button id="poCopyBtn" type="button">Copiar lista</button>
-      <button class="primary" id="poCsvBtn" type="button">Baixar CSV</button>
+      <button id="poCsvBtn" type="button">Baixar CSV</button>
+      <button class="primary" id="poSaveBtn" type="button">Registrar pedido</button>
     </div>
   </div>
 </div>
@@ -492,9 +558,63 @@
   </div>
 </div>
 
+<!-- ================= receber pedido ================= -->
+<div class="po-overlay" id="rcvOverlay" hidden role="dialog" aria-modal="true" aria-labelledby="rcvTitle">
+  <div class="po-modal">
+    <div class="po-head">
+      <div>
+        <h3 id="rcvTitle">Pedido</h3>
+        <div class="po-sub" id="rcvSub"></div>
+      </div>
+      <button class="close-btn" type="button" data-rcv-close aria-label="Fechar">&times;</button>
+    </div>
+    <div class="po-body" id="rcvBody"></div>
+    <div class="po-foot">
+      <span class="po-total" id="rcvTotal"></span>
+      <span class="po-feedback" id="rcvFeedback"></span>
+      <button type="button" id="rcvCancelOrderBtn">Cancelar pedido</button>
+      <button type="button" id="rcvAllBtn">Recebi tudo</button>
+      <button class="primary" type="button" id="rcvSaveBtn">Salvar recebimento</button>
+    </div>
+  </div>
+</div>
+
+<!-- ================= pacote para IA ================= -->
+<div class="po-overlay" id="aiOverlay" hidden role="dialog" aria-modal="true" aria-labelledby="aiTitle">
+  <div class="po-modal" style="max-width: 860px;">
+    <div class="po-head">
+      <div>
+        <h3 id="aiTitle">Pacote para IA</h3>
+        <div class="po-sub">Copie e cole no Claude (ou baixe o arquivo .md e anexe). O texto já traz o contexto, as definições, os dados e o que analisar.</div>
+      </div>
+      <button class="close-btn" type="button" data-ai-close aria-label="Fechar">&times;</button>
+    </div>
+    <div class="po-body">
+      <div class="ai-options">
+        <label class="check-line"><input type="checkbox" id="aiIncEvolution" checked> Evolução das contagens</label>
+        <label class="check-line"><input type="checkbox" id="aiIncConsumo" checked> Consumo real</label>
+        <label class="check-line"><input type="checkbox" id="aiIncPedidos" checked> Pedidos</label>
+        <label class="check-line"><input type="checkbox" id="aiIncMov"> Movimentações</label>
+      </div>
+      <label class="item-field"><span>Pergunta ou foco da análise <span class="opt">(opcional)</span></span>
+        <input type="text" id="aiFocus" maxlength="300" placeholder="Ex.: por que a unidade SM tem tantos itens zerados? O que devo comprar primeiro?">
+      </label>
+      <textarea id="aiText" class="ai-text" readonly spellcheck="false"></textarea>
+    </div>
+    <div class="po-foot">
+      <span class="po-total" id="aiSize"></span>
+      <span class="po-feedback" id="aiFeedback"></span>
+      <button type="button" id="aiDownloadBtn">Baixar .md</button>
+      <button class="primary" type="button" id="aiCopyBtn">Copiar texto</button>
+    </div>
+  </div>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script src="config.js?v=3"></script>
-<script src="app.js?v=5"></script>
-<script src="settings.js?v=2"></script>
+<script src="app.js?v=6"></script>
+<script src="settings.js?v=3"></script>
+<script src="orders.js?v=1"></script>
+<script src="reports.js?v=1"></script>
 </body>
 </html>

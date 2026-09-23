@@ -622,4 +622,6 @@
   }
 
   window.EstoqueSettings = { open: open };
+  window.EstoquePages = window.EstoquePages || {};
+  window.EstoquePages.configuracoes = open;
 })();

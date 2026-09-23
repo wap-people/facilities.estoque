@@ -25,6 +25,8 @@ Migrado em 2026-09-23 de um artefato do Claude; o visual segue o do artefato.
 | `styles.css` | Visual; cores em tokens no `:root`, com tema escuro. |
 | `app.js` | Login, painel, estoque, pedido de compra, usuários, tempo real. Expõe `window.EstoqueApp` para o `settings.js`. |
 | `settings.js` | Página Configurações (catálogo, copiar, importar planilha, unidades, aba Usuários). |
+| `orders.js` | Página Pedidos de compra: registrar (a partir do modal do pedido), receber total/parcial, cancelar. |
+| `reports.js` | Página Relatórios: 7 abas, exportação CSV/Excel e "Pacote para IA" (Markdown com tarefa, definições e dados). |
 | `config.js` | URL e chave **anon** (pública) do Supabase. |
 | `assets/` | Logos (preta/branca) e favicons. |
 | `supabase/migrations/NNN_*.sql` | Histórico do schema, em ordem. |
@@ -35,10 +37,12 @@ Migrado em 2026-09-23 de um artefato do Claude; o visual segue o do artefato.
 
 1. **Cache do GitHub Pages**: ao mudar `app.js`, `settings.js`, `config.js` ou
    `styles.css`, **aumente o `?v=`** correspondente em `index.html`. Sem isso,
-   os usuários continuam com a versão antiga por até ~10 min.
+   os usuários continuam com a versão antiga por até ~10 min. Páginas novas:
+   `<section class="page" id="page-X">` + botão `data-page="X"` + registrar
+   `window.EstoquePages.X = função` (chamada ao abrir a página).
 2. **Mudança no banco = nova migração**: aplique com `apply_migration` **e**
    salve o mesmo SQL em `supabase/migrations/` com o próximo número
-   (hoje o último é `004`). Depois rode `get_advisors` (security).
+   (hoje o último é `005`). Depois rode `get_advisors` (security).
 3. **Segurança (RLS)**: acesso = linha ativa em `public.members`
    (`private.is_allowed_user()`); admin = `private.is_admin()`. As funções de
    checagem ficam no schema `private` (fora da API). Excluir itens e criar
@@ -60,8 +64,9 @@ Migrado em 2026-09-23 de um artefato do Claude; o visual segue o do artefato.
 - `units(id, label, sort)` — `id` em MAIÚSCULAS (`^[A-Z0-9_]{1,30}$`).
 - `products(unit_id, code, name, category, unit, min_stock, avg_consumption)` — PK `(unit_id, code)`.
 - `counts(unit_id, code, month 'AAAA-MM', qty, updated_at, updated_by)` — PK `(unit_id, code, month)`; FK para products com `on update/delete cascade`.
-- `activity(type, code, name, detail, month, actor_*, created_at)` — tipos: `count`, `add`, `edit`, `delete`, `import`, `copy`.
+- `activity(type, code, name, detail, month, actor_*, created_at)` — tipos: `count`, `add`, `edit`, `delete`, `import`, `copy`, `order`, `receive`.
 - `members(user_id, email, full_name, is_admin, active)`.
+- `purchase_orders(id, unit_id, month, status emitido|parcial|recebido|cancelado, notes, created_*, received_*)` e `purchase_order_items(order_id, code, name, category, unit, qty_current, min_stock, qty_ordered, qty_received)`.
 - `allowed_domains` — legado, sem uso.
 - Realtime ligado em `products`, `counts`, `activity`.
 
@@ -70,7 +75,9 @@ Migrado em 2026-09-23 de um artefato do Claude; o visual segue o do artefato.
 - **Cobertura** = quantidade contada ÷ consumo médio mensal (em meses).
 - **Crítico**: contado abaixo do estoque de segurança **ou** cobertura < 1 mês.
   **Atenção**: sem contagem ou cobertura < 2 meses. Senão, **saudável**.
-- **Pedido de compra** = estoque de segurança − contado, para itens contados abaixo do mínimo (é calculado na tela, não é salvo).
+- **Pedido de compra**: sugestão = estoque de segurança − contado (editável no modal); "Registrar pedido" salva em `purchase_orders`.
+- **Consumo real** (relatórios) = contagem do mês anterior + recebido **entre as datas das duas contagens** − contagem do mês. Negativo = erro de contagem ou recebimento não registrado.
+- Consumo médio e estoque de segurança não têm histórico: os relatórios usam os valores atuais.
 - O seletor de mês vai do mês atual até dezembro do mesmo ano.
 
 ## Testar
@@ -86,8 +93,8 @@ Migrado em 2026-09-23 de um artefato do Claude; o visual segue o do artefato.
 - **Histórico** (menu "em breve"): linha do tempo filtrável de `activity` e
   gráfico por item. Falta registrar mudanças de segurança/consumo feitas na
   página Estoque.
-- **Relatórios** (menu "em breve"): fechamento mensal por unidade e
-  consolidado; exportar Excel/PDF. Para consumo real e custo faltam **pedidos
-  de compra salvos (emitido → recebido)** e **preço por item**.
+- **Relatórios**: feitos (resumo, fechamento, evolução, consumo real, pedidos,
+  comparativo de unidades, movimentações; CSV, Excel e Pacote para IA). O
+  usuário optou por **não** ter preço/custo por enquanto.
 - A análise com IA do artefato foi removida (precisaria de chave da API
   Anthropic via Edge Function).
