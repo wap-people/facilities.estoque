@@ -59,6 +59,12 @@ Migrado em 2026-09-23 de um artefato do Claude; o visual segue o do artefato.
    (commit/stash das alterações locais, depois `git pull --rebase`) antes de
    editar. Mais de uma pessoa trabalha no projeto; nunca use `push --force`.
 
+8. **Plano gratuito do Supabase** pausa após 7 dias sem uso. O workflow
+   `.github/workflows/supabase-keepalive.yml` consulta o banco a cada 3 dias.
+   Se pausar, o conector tem `restore_project` (ou o botão Resume project).
+   O GitHub desativa workflows agendados após 60 dias sem commits no repo:
+   se isso acontecer, reative em Actions.
+
 ## Modelo de dados (resumo)
 
 - `units(id, label, sort)` — `id` em MAIÚSCULAS (`^[A-Z0-9_]{1,30}$`).

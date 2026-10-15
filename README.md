@@ -109,6 +109,12 @@ registrados.
 `app.js`, `config.js` ou `styles.css`, aumente o `?v=` correspondente em
 `index.html` para ninguém ficar com a versão antiga em cache.
 
+**Supabase pausado?** O plano gratuito pausa o projeto após 7 dias sem uso.
+O workflow `.github/workflows/supabase-keepalive.yml` faz uma consulta leve a
+cada 3 dias para evitar isso (dá para rodar à mão em GitHub > Actions >
+"Supabase keep-alive" > Run workflow). Se mesmo assim pausar, entre no painel
+do Supabase e clique em **Resume project** (leva de 5 a 15 minutos; nada se perde).
+
 **Backup / exportar**: Supabase > Table Editor > tabela > *Export to CSV*.
 
 **Testar localmente**:
